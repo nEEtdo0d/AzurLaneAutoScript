@@ -346,6 +346,7 @@ def main(ini_name=''):
     daily.add_argument('--打每日', default=default('--打每日'), help='若当天有记录, 则跳过', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--打困难', default=default('--打困难'), help='若当天有记录, 则跳过', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--打演习', default=default('--打演习'), help='若在刷新后有记录, 则跳过', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    daily.add_argument('--enable_distress', default=default('--enable_distress'), help='If there is a record after refreshing, skip', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--打共斗每日15次', default=default('--打共斗每日15次'), help='若当天有记录, 则跳过', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--打活动图每日三倍PT', default=default('--打活动图每日三倍PT'), help='若当天有记录, 则跳过', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--打活动每日SP图', default=default('--打活动每日SP图'), help='若当天有记录, 则跳过', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
@@ -373,6 +374,17 @@ def main(ini_name=''):
     exercise.add_argument('--演习SL阈值', default=default('--演习SL阈值'), help='HP<阈值时撤退', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--演习低血量确认时长', default=default('--演习低血量确认时长'), help='HP低于阈值后, 过一定时长才会撤退\n推荐 1.0 ~ 3.0', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--演习快速换装', default=default('--演习快速换装'), help='打之前换装备, 打完后卸装备, 不需要就填0\n逗号分割, 例如 3, 1, 0, 1, 1, 0', gooey_options={'label_color': '#4B5F83'})
+
+    # distress
+    distress = daily_parser.add_argument_group('Distress settings', '', gooey_options={'label_color': '#931D03'})
+    distress.add_argument('--distress_fixed_fleet_index_1', default=default('--distress_fixed_fleet_index_1'), help='For Chapters 3, 4, and 5 Only', choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fselect = distress.add_argument_group('2-Fleet Composition for Select Chapters', '', gooey_options={'label_color': '#4B5F83'})
+    fselect.add_argument('--distress_select_fleet_index_1', default=default('--distress_select_fleet_index_1'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fselect.add_argument('--distress_select_fleet_index_2', default=default('--distress_select_fleet_index_2'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fselect.add_argument('--distress_select_targets', default=default('--distress_select_targets'), help='Comma separated list of chapter numbers to target', gooey_options={'label_color': '#4B5F83'})
+    fremain = distress.add_argument_group('2-Fleet Composition for Remaining Chapters', '', gooey_options={'label_color': '#4B5F83'})
+    fremain.add_argument('--distress_remain_fleet_index_1', default=default('--distress_remain_fleet_index_1'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fremain.add_argument('--distress_remain_fleet_index_2', default=default('--distress_remain_fleet_index_2'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
 
     # 每日活动图三倍PT
     event_bonus = daily_parser.add_argument_group('活动设置', '', gooey_options={'label_color': '#931D03'})

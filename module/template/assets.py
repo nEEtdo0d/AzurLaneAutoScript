@@ -60,5 +60,6 @@ TEMPLATE_SIREN_Z2 = Template(file={'cn': './assets/cn/template/TEMPLATE_SIREN_Z2
 TEMPLATE_STAGE_BLUE_CLEAR = Template(file={'cn': './assets/cn/template/TEMPLATE_STAGE_BLUE_CLEAR.png', 'en': './assets/en/template/TEMPLATE_STAGE_BLUE_CLEAR.png', 'jp': './assets/jp/template/TEMPLATE_STAGE_BLUE_CLEAR.png'})
 TEMPLATE_STAGE_BLUE_PERCENT = Template(file={'cn': './assets/cn/template/TEMPLATE_STAGE_BLUE_PERCENT.png', 'en': './assets/en/template/TEMPLATE_STAGE_BLUE_PERCENT.png', 'jp': './assets/jp/template/TEMPLATE_STAGE_BLUE_PERCENT.png'})
 TEMPLATE_STAGE_CLEAR = Template(file={'cn': './assets/cn/template/TEMPLATE_STAGE_CLEAR.png', 'en': './assets/en/template/TEMPLATE_STAGE_CLEAR.png', 'jp': './assets/jp/template/TEMPLATE_STAGE_CLEAR.png'})
+TEMPLATE_STAGE_DISTRESS = Template(file={'cn': './assets/cn/template/TEMPLATE_STAGE_DISTRESS.png', 'en': './assets/en/template/TEMPLATE_STAGE_DISTRESS.png', 'jp': './assets/cn/template/TEMPLATE_STAGE_DISTRESS.png'})
 TEMPLATE_STAGE_PERCENT = Template(file={'cn': './assets/cn/template/TEMPLATE_STAGE_PERCENT.png', 'en': './assets/en/template/TEMPLATE_STAGE_PERCENT.png', 'jp': './assets/jp/template/TEMPLATE_STAGE_PERCENT.png'})
 TEMPLATE_SUBMARINE = Template(file={'cn': './assets/cn/template/TEMPLATE_SUBMARINE.png', 'en': './assets/en/template/TEMPLATE_SUBMARINE.png', 'jp': './assets/jp/template/TEMPLATE_SUBMARINE.png'})

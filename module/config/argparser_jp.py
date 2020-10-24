@@ -373,6 +373,8 @@ def main(ini_name=''):
                        help='If there are records on the day, skip', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--enable_exercise', default=default('--enable_exercise'),
                        help='If there is a record after refreshing, skip', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    daily.add_argument('--enable_distress', default=default('--enable_distress'),
+                       help='If there is a record after refreshing, skip', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--enable_raid_daily', default=default('--enable_raid_daily'),
                        help='If there is a record after refreshing, skip', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--enable_event_ab', default=default('--enable_event_ab'),
@@ -417,6 +419,17 @@ def main(ini_name=''):
                           help='After HP is below the threshold, it will retreat after a certain period of time \nRecommended 1.0 ~ 3.0', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--exercise_equipment', default=default('--exercise_equipment'),
                           help='Change equipment before playing, unload equipment after playing, do not need to fill in 0 \ncomma, such as 3, 1, 0, 1, 1, 0', gooey_options={'label_color': '#4B5F83'})
+
+    # distress
+    distress = daily_parser.add_argument_group('Distress settings', '', gooey_options={'label_color': '#931D03'})
+    distress.add_argument('--distress_fixed_fleet_index_1', default=default('--distress_fixed_fleet_index_1'), help='For Chapters 3, 4, and 5 Only', choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fselect = distress.add_argument_group('2-Fleet Composition for Select Chapters', '', gooey_options={'label_color': '#4B5F83'})
+    fselect.add_argument('--distress_select_fleet_index_1', default=default('--distress_select_fleet_index_1'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fselect.add_argument('--distress_select_fleet_index_2', default=default('--distress_select_fleet_index_2'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fselect.add_argument('--distress_select_targets', default=default('--distress_select_targets'), help='Comma separated list of chapter numbers to target', gooey_options={'label_color': '#4B5F83'})
+    fremain = distress.add_argument_group('2-Fleet Composition for Remaining Chapters', '', gooey_options={'label_color': '#4B5F83'})
+    fremain.add_argument('--distress_remain_fleet_index_1', default=default('--distress_remain_fleet_index_1'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
+    fremain.add_argument('--distress_remain_fleet_index_2', default=default('--distress_remain_fleet_index_2'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
 
     # event_daily_ab
     event_bonus = daily_parser.add_argument_group('Event Daily Bonus', 'bonus for first clear each day', gooey_options={'label_color': '#931D03'})

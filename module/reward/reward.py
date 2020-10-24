@@ -222,7 +222,7 @@ class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, 
 
     def daily_wrapper_run(self):
         count = 0
-        total = 5
+        total = 6
         if self.config.ENABLE_DAILY_MISSION:
             from module.daily.daily import Daily
             az = Daily(self.config, device=self.device)
@@ -262,6 +262,14 @@ class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, 
         if self.config.ENABLE_RAID_DAILY:
             from module.raid.daily import RaidDaily
             az = RaidDaily(self.config, device=self.device)
+            if not az.record_executed_since():
+                az.run()
+                az.record_save()
+                count += 1
+
+        if self.config.ENABLE_DISTRESS:
+            from module.distress.distress import DistressSignal
+            az = DistressSignal(self.config, device=self.device)
             if not az.record_executed_since():
                 az.run()
                 az.record_save()

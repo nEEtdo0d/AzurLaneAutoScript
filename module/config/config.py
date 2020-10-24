@@ -234,6 +234,17 @@ class AzurLaneConfig:
     EXERCISE_FLEET_EQUIPMENT = [1, 1, 1, 1, 1, 1]
 
     """
+    module.distress
+    """
+    ENABLE_DISTRESS = True
+    DISTRESS_FIXED_FLEET_1 = 1
+    DISTRESS_SELECT_FLEET_1 = 1
+    DISTRESS_SELECT_FLEET_2 = 2
+    DISTRESS_SELECT_TARGETS = [6]
+    DISTRESS_REMAIN_FLEET_1 = 1
+    DISTRESS_REMAIN_FLEET_2 = 2
+
+    """
     module.raid
     """
     RAID_NAME = ''
@@ -642,6 +653,21 @@ class AzurLaneConfig:
         self.LOW_HP_THRESHOLD = float(option['exercise_hp_threshold'])
         self.LOW_HP_CONFIRM_WAIT = float(option['exercise_low_hp_confirm'])
         self.EXERCISE_FLEET_EQUIPMENT = to_list(option['exercise_equipment'])
+        # Distress
+        self.ENABLE_DISTRESS = to_bool(option['enable_distress'])
+
+        self.DISTRESS_FIXED_FLEET_1 = int(option['distress_fixed_fleet_index_1']) if to_bool(option['distress_fixed_fleet_index_1']) else 0
+
+        self.DISTRESS_SELECT_FLEET_1 = int(option['distress_select_fleet_index_1']) if to_bool(option['distress_select_fleet_index_1']) else 0
+        self.DISTRESS_SELECT_FLEET_2 = int(option['distress_select_fleet_index_2']) if to_bool(option['distress_select_fleet_index_2']) else 0
+        if option['distress_select_targets'].isdigit():
+            self.DISTRESS_SELECT_TARGETS = [int(option['distress_select_targets'])]
+        else:
+            self.DISTRESS_SELECT_TARGETS = to_list(option['distress_select_targets'])
+
+        self.DISTRESS_REMAIN_FLEET_1 = int(option['distress_remain_fleet_index_1']) if to_bool(option['distress_remain_fleet_index_1']) else 0
+        self.DISTRESS_REMAIN_FLEET_2 = int(option['distress_remain_fleet_index_2']) if to_bool(option['distress_remain_fleet_index_2']) else 0
+
         # Event bonus
         # option = config['Event_daily_ab']
         self.ENABLE_EVENT_AB = to_bool(option['enable_event_ab'])
