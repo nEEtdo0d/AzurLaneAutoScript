@@ -446,6 +446,18 @@ class AzurLaneConfig:
     RESEARCH_USE_PART = True
 
     """
+    module.sos
+    """
+    SOS_FLEETS_CHAPTER_3 = [4, 0]
+    SOS_FLEETS_CHAPTER_4 = [4, 0]
+    SOS_FLEETS_CHAPTER_5 = [4, 0]
+    SOS_FLEETS_CHAPTER_6 = [4, 0]
+    SOS_FLEETS_CHAPTER_7 = [4, 6]
+    SOS_FLEETS_CHAPTER_8 = [4, 6]
+    SOS_FLEETS_CHAPTER_9 = [5, 6, 1]
+    SOS_FLEETS_CHAPTER_10 = [4, 6, 1]
+
+    """
     C_1_1_affinity_farming
     """
     C11_AFFINITY_BATTLE_COUNT = 0
@@ -687,6 +699,11 @@ class AzurLaneConfig:
         self.EVENT_NAME = option['event_name']
         self.EVENT_STAGE = option['event_stage'].lower()
 
+        # Sos
+        option = config['Sos']
+        for chapter in range(3, 11):
+            self.__setattr__(f'SOS_FLEETS_CHAPTER_{chapter}', to_list(option[f'sos_fleets_chapter_{chapter}']))
+
         # Raid
         option = config['Raid']
         self.RAID_NAME = option['raid_name']
@@ -774,6 +791,25 @@ class AzurLaneConfig:
         self.config.set(option[0], option[1], record)
         self.save()
 
+    def cover(self, **kwargs):
+        """
+        Cover some settings, and recover later.
+
+        Usage:
+        backup = self.config.cover(ENABLE_DAILY_REWARD=False)
+        # do_something()
+        backup.recover()
+
+        Args:
+            **kwargs:
+
+        Returns:
+            ConfigBackup:
+        """
+        backup = ConfigBackup(config=self)
+        backup.cover(**kwargs)
+        return backup
+
     def __init__(self, ini_name='alas'):
         """
         Args:
@@ -782,5 +818,26 @@ class AzurLaneConfig:
         self.load_config_file(ini_name)
 
         self.create_folder()
+
+
+class ConfigBackup:
+    def __init__(self, config):
+        """
+        Args:
+            config (AzurLaneConfig):
+        """
+        self.config = config
+        self.backup = {}
+        self.kwargs = {}
+
+    def cover(self, **kwargs):
+        self.kwargs = kwargs
+        for key, value in kwargs.items():
+            self.backup[key] = self.config.__getattribute__(key)
+            self.config.__setattr__(key, value)
+
+    def recover(self):
+        for key, value in self.backup.items():
+            self.config.__setattr__(key, value)
 
 # cfg = AzurLaneConfig()

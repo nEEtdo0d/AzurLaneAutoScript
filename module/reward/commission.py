@@ -7,7 +7,6 @@ import numpy as np
 from scipy import signal
 
 from module.base.decorator import Config
-from module.base.switch import Switch
 from module.base.timer import Timer
 from module.base.utils import area_offset, get_color, random_rectangle_vector
 from module.base.utils import color_similar_1d, random_rectangle_point
@@ -17,6 +16,7 @@ from module.logger import logger
 from module.ocr.ocr import Ocr, OcrJapanese
 from module.reward.assets import *
 from module.ui.page import page_reward, page_commission, CAMPAIGN_CHECK
+from module.ui.switch import Switch
 from module.ui.ui import UI
 
 dictionary_cn = {
@@ -67,7 +67,7 @@ dictionary_jp = {
     'urgent_gem': ['BIW要人護衛', 'NYB要人護衛', 'BIW休暇護衛', 'NYB休暇護衛'],
     'urgent_ship': ['小型観覧式', '連合艦隊観覧式', '多国連合観覧式']
 }
-COMMISSION_SWITCH = Switch('Commission_switch', is_choice=True)
+COMMISSION_SWITCH = Switch('Commission_switch', is_selector=True)
 COMMISSION_SWITCH.add_status('daily', COMMISSION_DAILY)
 COMMISSION_SWITCH.add_status('urgent', COMMISSION_URGENT)
 
