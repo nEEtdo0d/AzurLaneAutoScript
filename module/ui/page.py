@@ -64,6 +64,11 @@ page_sp.link(button=GOTO_MAIN, destination=page_main)
 page_sp.link(button=BACK_ARROW, destination=page_campaign)
 page_campaign.link(button=CAMPAIGN_GOTO_EVENT, destination=page_sp)
 
+# War Archives
+page_archives = Page(WAR_ARCHIVES_CHECK)
+page_archives.link(button=WAR_ARCHIVES_GOTO_CAMPAIGN, destination=page_campaign)
+page_campaign.link(button=CAMPAIGN_GOTO_WAR_ARCHIVES, destination=page_archives)
+
 # Reward
 page_reward = Page(REWARD_CHECK)
 page_reward.link(button=REWARD_GOTO_MAIN, destination=page_main)
@@ -112,6 +117,7 @@ page_main.link(button=MAIN_GOTO_RESHMENU, destination=page_reshmenu)
 # Dorm menu
 page_dormmenu = Page(DORMMENU_CHECK)
 page_main.link(button=MAIN_GOTO_DORMMENU, destination=page_dormmenu)
+page_dormmenu.link(button=DORMMENU_GOTO_MAIN, destination=page_main)
 
 # Dorm
 # DORM_CHECK is the `manage` button (the third from the right), because it's the last button to load.
