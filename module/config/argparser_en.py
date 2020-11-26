@@ -458,6 +458,8 @@ def main(ini_name=''):
                        gooey_options={'label_color': '#4B5F83'})
     stage.add_argument('--campaign_mode', default=default('--campaign_mode'), help='Useful if you want to clear a hard mode map',
                        choices=['normal', 'hard'], gooey_options={'label_color': '#4B5F83'})
+    stage.add_argument('--use_main_fleets', default=default('--use_main_fleets'), choices=['yes', 'no'], help='', gooey_options={'label_color': '#4B5F83'})
+    stage.add_argument('--main_fleets', default=default('--main_fleets'), gooey_options={'label_color': '#4B5F83'})
 
     # ==========event==========
     event_parser = subs.add_parser('event')
@@ -469,6 +471,8 @@ def main(ini_name=''):
         'Choose a level', '\n'.join([line.strip() for line in description.strip().split('\n')]), gooey_options={'label_color': '#931D03'})
     event.add_argument('--event_stage', default=default('--event_stage'), help='Type stage name, not case sensitive, E.g D3, SP3, HT6', gooey_options={'label_color': '#4B5F83'})
     event.add_argument('--event_name', default=event_latest, choices=event_folder, help='There a dropdown menu with many options', gooey_options={'label_color': '#4B5F83'})
+    event.add_argument('--use_event_fleets', default=default('--use_event_fleets'), choices=['yes', 'no'], help='', gooey_options={'label_color': '#4B5F83'})
+    event.add_argument('--event_fleets', default=default('--event_fleets'), gooey_options={'label_color': '#4B5F83'})
 
     # ==========sos==========
     sos_parser = subs.add_parser('sos')
@@ -489,6 +493,8 @@ def main(ini_name=''):
         'war archives settings', 'Type a stage and select a corresponding event for that stage', gooey_options={'label_color': '#931D03'})
     war_archives.add_argument('--war_archives_stage', default=default('--war_archives_stage'), help='Type stage name, not case sensitive, E.g D3, SP3, HT6', gooey_options={'label_color': '#4B5F83'})
     war_archives.add_argument('--war_archives_name', default=default('--war_archives_name'), choices=archives_folder, help='There a dropdown menu with many options', gooey_options={'label_color': '#4B5F83'})
+    war_archives.add_argument('--use_war_archives_fleets', default=default('--use_war_archives_fleets'), choices=['yes', 'no'], help='', gooey_options={'label_color': '#4B5F83'})
+    war_archives.add_argument('--war_archives_fleets', default=default('--war_archives_fleets'), gooey_options={'label_color': '#4B5F83'})
 
     # ==========Raid==========
     raid_parser = subs.add_parser('raid')

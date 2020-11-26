@@ -124,9 +124,11 @@ class AzurLaneAutoScript:
         """
         Method to run main chapter.
         """
+        backup = self.temporary_fleets("MAIN")
         from module.campaign.run import CampaignRun
         az = CampaignRun(self.config, device=self.device)
         az.run(self.config.CAMPAIGN_NAME)
+        self.configured_fleets(backup)
         self.reward_when_finished()
 
     def daily(self):
@@ -143,9 +145,11 @@ class AzurLaneAutoScript:
         """
         Method to run event.
         """
+        backup = self.temporary_fleets("EVENT")
         from module.campaign.run import CampaignRun
         az = CampaignRun(self.config, device=self.device)
         az.run(self.config.EVENT_STAGE, folder=self.config.EVENT_NAME)
+        self.configured_fleets(backup)
         self.reward_when_finished()
 
     def sos(self):
@@ -161,9 +165,11 @@ class AzurLaneAutoScript:
         """
         Method to War Archives maps.
         """
+        backup = self.temporary_fleets("WAR_ARCHIVES")
         from module.war_archives.war_archives import CampaignWarArchives
         az = CampaignWarArchives(self.config, device=self.device)
         az.run(self.config.WAR_ARCHIVES_STAGE, folder=self.config.WAR_ARCHIVES_NAME)
+        self.configured_fleets(backup)
         self.reward_when_finished()
 
     def raid(self):
@@ -212,6 +218,21 @@ class AzurLaneAutoScript:
         az = Retirement(self.config, device=self.device)
         az.device.screenshot()
         az.retire_ships(amount=2000)
+
+    def temporary_fleets(self, name, backup=""):
+        use_fleets = self.config.__getattribute__(f'USE_{name}_FLEETS')
+        fleets = self.config.__getattribute__(f'{name}_FLEETS')
+        if use_fleets:
+            fleet_1 = fleets[0]
+            fleet_2 = fleets[1] if len(fleets) >= 2 else 0
+            fleet_3 = fleets[2] if len(fleets) >= 3 else 0
+            backup = self.config.cover(FLEET_1=fleet_1, FLEET_2=fleet_2, FLEET_3=fleet_3)
+        return backup
+
+    def configured_fleets(self, backup):
+        if backup != "":
+            backup.recover()
+
 
 # alas = AzurLaneAutoScript()
 # alas.reward()

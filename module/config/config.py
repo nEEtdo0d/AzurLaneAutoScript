@@ -124,6 +124,8 @@ class AzurLaneConfig:
     """
     CAMPAIGN_NAME = 'default'
     CAMPAIGN_MODE = 'normal'
+    USE_MAIN_FLEETS = False
+    MAIN_FLEETS = [1, 2, 1]
 
     ENABLE_EXCEPTION = True
     ENABLE_GAME_STUCK_HANDLER = True
@@ -157,6 +159,8 @@ class AzurLaneConfig:
     ENABLE_EVENT_SP = False
     EVENT_AB_CHAPTER = 'chapter_ab'  # chapter_ab, chapter_abcd, chapter_t, chapter_ht
     EVENT_SP_MOB_FLEET = 1
+    USE_EVENT_FLEETS = False
+    EVENT_FLEETS = [1, 2, 1]
 
     """
     module.combat.emotion
@@ -456,6 +460,8 @@ class AzurLaneConfig:
     USE_DATA_KEY = False
     WAR_ARCHIVES_NAME = ''
     WAR_ARCHIVES_STAGE = ''
+    USE_WAR_ARCHIVES_FLEETS = False
+    WAR_ARCHIVES_FLEETS = [1, 2, 1]
 
     """
     C_1_1_affinity_farming
@@ -640,6 +646,7 @@ class AzurLaneConfig:
         self.CAMPAIGN_MODE = option['campaign_mode']
         self.CAMPAIGN_NAME = option['main_stage']
         self.CAMPAIGN_NAME = 'campaign_' + self.CAMPAIGN_NAME.replace('-', '_')
+        self.USE_MAIN_FLEETS = to_bool(option['use_main_fleets'])
 
         option = config['Daily']
         for n in ['daily_mission', 'hard_campaign', 'exercise']:
@@ -673,6 +680,7 @@ class AzurLaneConfig:
         self.EVENT_NAME_AB = option['event_name_ab']
         self.EVENT_AB_CHAPTER = option['event_ab_chapter']
         self.EVENT_SP_MOB_FLEET = int(option['event_sp_mob_fleet'])
+
         # Raid daily
         self.ENABLE_RAID_DAILY = to_bool(option['enable_raid_daily'])
         self.RAID_DAILY_NAME = option['raid_daily_name']
@@ -684,6 +692,7 @@ class AzurLaneConfig:
         option = config['Event']
         self.EVENT_NAME = option['event_name']
         self.EVENT_STAGE = option['event_stage'].lower()
+        self.USE_EVENT_FLEETS = to_bool(option['use_event_fleets'])
 
         # Sos
         option = config['Sos']
@@ -694,6 +703,7 @@ class AzurLaneConfig:
         option = config['War_archives']
         self.WAR_ARCHIVES_NAME = option['war_archives_name']
         self.WAR_ARCHIVES_STAGE = option['war_archives_stage'].lower()
+        self.USE_WAR_ARCHIVES_FLEETS = to_bool(option['use_war_archives_fleets'])
 
         # Raid
         option = config['Raid']
