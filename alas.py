@@ -219,7 +219,8 @@ class AzurLaneAutoScript:
         az.device.screenshot()
         az.retire_ships(amount=2000)
 
-    def temporary_fleets(self, name, backup=""):
+    def temporary_fleets(self, name):
+        backup = ""
         use_fleets = self.config.__getattribute__(f'USE_{name}_FLEETS')
         fleets = self.config.__getattribute__(f'{name}_FLEETS')
         if use_fleets:
