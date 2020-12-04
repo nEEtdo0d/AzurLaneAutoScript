@@ -225,8 +225,8 @@ class AzurLaneAutoScript:
         if use_fleets:
             fleet_1 = fleets[0]
             fleet_2 = fleets[1] if len(fleets) >= 2 else 0
-            fleet_3 = fleets[2] if len(fleets) >= 3 else 0
-            backup = self.config.cover(FLEET_1=fleet_1, FLEET_2=fleet_2, FLEET_3=fleet_3)
+            submarine = fleets[2] if len(fleets) >= 3 else 0
+            backup = self.config.cover(FLEET_1=fleet_1, FLEET_2=fleet_2, SUBMARINE=submarine, FLEET_BOSS=1 if not fleet_2 else 2)
         return backup
 
     def configured_fleets(self, backup):
