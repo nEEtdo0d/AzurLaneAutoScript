@@ -124,11 +124,11 @@ class AzurLaneAutoScript:
         """
         Method to run main chapter.
         """
-        backup = self.temporary_fleets("MAIN")
+        backup = self._temporary_fleets("MAIN")
         from module.campaign.run import CampaignRun
         az = CampaignRun(self.config, device=self.device)
         az.run(self.config.CAMPAIGN_NAME)
-        self.configured_fleets(backup)
+        self._configured_fleets(backup)
         self.reward_when_finished()
 
     def daily(self):
@@ -145,11 +145,11 @@ class AzurLaneAutoScript:
         """
         Method to run event.
         """
-        backup = self.temporary_fleets("EVENT")
+        backup = self._temporary_fleets("EVENT")
         from module.campaign.run import CampaignRun
         az = CampaignRun(self.config, device=self.device)
         az.run(self.config.EVENT_STAGE, folder=self.config.EVENT_NAME)
-        self.configured_fleets(backup)
+        self._configured_fleets(backup)
         self.reward_when_finished()
 
     def sos(self):
@@ -165,11 +165,11 @@ class AzurLaneAutoScript:
         """
         Method to War Archives maps.
         """
-        backup = self.temporary_fleets("WAR_ARCHIVES")
+        backup = self._temporary_fleets("WAR_ARCHIVES")
         from module.war_archives.war_archives import CampaignWarArchives
         az = CampaignWarArchives(self.config, device=self.device)
         az.run(self.config.WAR_ARCHIVES_STAGE, folder=self.config.WAR_ARCHIVES_NAME)
-        self.configured_fleets(backup)
+        self._configured_fleets(backup)
         self.reward_when_finished()
 
     def raid(self):
@@ -224,8 +224,7 @@ class AzurLaneAutoScript:
         az = AzurLaneDaemon(self.config, device=self.device)
         az.daemon()
 
-
-    def temporary_fleets(self, name):
+    def _temporary_fleets(self, name):
         backup = ""
         use_fleets = self.config.__getattribute__(f'USE_{name}_FLEETS')
         fleets = self.config.__getattribute__(f'{name}_FLEETS')
@@ -236,7 +235,7 @@ class AzurLaneAutoScript:
             backup = self.config.cover(FLEET_1=fleet_1, FLEET_2=fleet_2, SUBMARINE=submarine, FLEET_BOSS=1 if not fleet_2 else 2)
         return backup
 
-    def configured_fleets(self, backup):
+    def _configured_fleets(self, backup):
         if backup != "":
             backup.recover()
 
