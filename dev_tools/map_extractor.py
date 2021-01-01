@@ -62,6 +62,23 @@ DIC_SIREN_NAME_CHI_TO_ENG = {
 
     # The Enigma and the Shark
     'nvjiang': 'Amazon',
+
+    # Inverted Orthant
+    'luodeni': 'Rodney',
+    'huangjiafangzhou': 'ArkRoyal',
+    'jingang': 'Kongo',
+    'shancheng': 'Yamashiro',
+    'z24': 'Z24',
+    'niulunbao': 'Nuremberg',
+    'longqibing': 'Carabiniere',
+    'sairenquzhu_ii': 'DD',
+    'sairenqingxun_ii': 'CL',
+    'sairenzhanlie_ii': 'BB',
+    'sairenhangmu_ii': 'CV',
+    'qinraozhe': 'Intruder',
+    'xianghe': 'Shokaku',
+    'ruihe': 'Zuikaku',
+    'shitelasai': 'PeterStrasser',
 }
 
 
@@ -70,6 +87,20 @@ def load_lua(folder, file, prefix):
         text = f.read()
     print(f'Loading {file}')
     result = slpp.decode(text[prefix:])
+    print(f'{len(result.keys())} items loaded')
+    return result
+
+
+def load_lua_by_function(folder, file):
+    with open(os.path.join(folder, file), 'r', encoding='utf-8') as f:
+        text = f.read()
+    print(f'Loading {file}')
+    matched = re.findall('function \(\)(.*?)end\(\)', text, re.S)
+    result = {}
+    for func in matched:
+        add = slpp.decode('{' + func + '}')
+        result.update(add)
+
     print(f'{len(result.keys())} items loaded')
     return result
 
@@ -94,34 +125,16 @@ class MapData:
         self.name = data['name']
         self.profiles = data['profiles']
         self.map_id = data['id']
+
         try:
-            battle_count = max(data['boss_refresh'], max(data['enemy_refresh'].keys()))
-        except ValueError:
-            battle_count = 0
-        self.spawn_data = [{'battle': index} for index in range(battle_count + 1)]
-        try:
-            # spawn_data
-            for index, count in data['enemy_refresh'].items():
-                if count:
-                    spawn = self.spawn_data[index]
-                    spawn['enemy'] = spawn.get('enemy', 0) + count
-            if ''.join([str(item) for item in data['elite_refresh'].values()]) != '100':  # Some data is incorrect
-                for index, count in data['elite_refresh'].items():
-                    if count:
-                        spawn = self.spawn_data[index]
-                        spawn['enemy'] = spawn.get('enemy', 0) + count
-            for index, count in data['ai_refresh'].items():
-                if count:
-                    spawn = self.spawn_data[index]
-                    spawn['siren'] = spawn.get('siren', 0) + count
-            for index, count in data['box_refresh'].items():
-                if count:
-                    spawn = self.spawn_data[index]
-                    spawn['mystery'] = spawn.get('mystery', 0) + count
-            try:
-                self.spawn_data[data['boss_refresh']]['boss'] = 1
-            except IndexError:
-                pass
+            self.spawn_data = self.parse_spawn_data(data)
+            if data_loop is not None:
+                self.spawn_data_loop = self.parse_spawn_data(data_loop)
+                if len(self.spawn_data) == len(self.spawn_data_loop) \
+                        and all([s1 == s2 for s1, s2 in zip(self.spawn_data, self.spawn_data_loop)]):
+                    self.spawn_data_loop = None
+            else:
+                self.spawn_data_loop = None
 
             # map_data
             # {0: {0: 6, 1: 8, 2: False, 3: 0}, ...}
@@ -154,6 +167,8 @@ class MapData:
             if isinstance(data['land_based'], dict):
                 for lb in data['land_based'].values():
                     y, x, r = lb.values()
+                    if r not in land_based_rotation_dict:
+                        continue
                     self.land_based.append([location2node((x, y)), land_based_rotation_dict[r]])
 
             # config
@@ -201,6 +216,38 @@ class MapData:
             map_data[loca] = info
 
         return map_data
+
+    @staticmethod
+    def parse_spawn_data(data):
+        try:
+            battle_count = max(data['boss_refresh'], max(data['enemy_refresh'].keys()))
+        except ValueError:
+            battle_count = 0
+        spawn_data = [{'battle': index} for index in range(battle_count + 1)]
+
+        for index, count in data['enemy_refresh'].items():
+            if count:
+                spawn = spawn_data[index]
+                spawn['enemy'] = spawn.get('enemy', 0) + count
+        if ''.join([str(item) for item in data['elite_refresh'].values()]) != '100':  # Some data is incorrect
+            for index, count in data['elite_refresh'].items():
+                if count:
+                    spawn = spawn_data[index]
+                    spawn['enemy'] = spawn.get('enemy', 0) + count
+        for index, count in data['ai_refresh'].items():
+            if count:
+                spawn = spawn_data[index]
+                spawn['siren'] = spawn.get('siren', 0) + count
+        for index, count in data['box_refresh'].items():
+            if count:
+                spawn = spawn_data[index]
+                spawn['mystery'] = spawn.get('mystery', 0) + count
+        try:
+            spawn_data[data['boss_refresh']]['boss'] = 1
+        except IndexError:
+            pass
+
+        return spawn_data
 
     def map_file_name(self):
         name = self.chapter_name.replace('-', '_').lower()
@@ -264,6 +311,11 @@ class MapData:
         for battle in self.spawn_data:
             lines.append('    ' + str(battle) + ',')
         lines.append(']')
+        if self.spawn_data_loop is not None:
+            lines.append('MAP.spawn_data_loop = [')
+            for battle in self.spawn_data_loop:
+                lines.append('    ' + str(battle) + ',')
+            lines.append(']')
         for y in range(self.shape[1] + 1):
             lines.append(', '.join([location2node((x, y)) for x in range(self.shape[0] + 1)]) + ', \\')
         lines.append('    = MAP.flatten()')
@@ -450,7 +502,7 @@ DATA = load_lua(FILE, 'chapter_template.lua', prefix=36)
 DATA_LOOP = load_lua(FILE, 'chapter_template_loop.lua', prefix=41)
 MAP_EVENT_LIST = load_lua(FILE, 'map_event_list.lua', prefix=34)
 MAP_EVENT_TEMPLATE = load_lua(FILE, 'map_event_template.lua', prefix=38)
-EXPECTATION_DATA = load_lua(FILE, 'expedition_data_template.lua', prefix=43)
+EXPECTATION_DATA = load_lua_by_function(FILE, 'expedition_data_template.lua')
 
 ct = ChapterTemplate()
 ct.extract(ct.get_chapter_by_name(KEYWORD, select=SELECT), folder=FOLDER)

@@ -144,7 +144,7 @@ def main(ini_name=''):
     stop.add_argument('--如果获得新船', default=default('--如果获得新船'), choices=['是', '否'],
                       help='获得新船后进入收获循环',
                       gooey_options={'label_color': '#4B5F83'})
-    stop.add_argument('--如果地图开荒', default=default('--如果地图开荒'), choices=['否', '地图通关', '地图三星', '地图绿海不打三星', '地图绿海'], help='如果已经满足, 无视此设置', gooey_options={'label_color': '#4B5F83'})
+    stop.add_argument('--如果地图开荒', default=default('--如果地图开荒'), choices=['否', '地图通关', '地图三星', '地图绿海不打三星', '地图绿海'], help='', gooey_options={'label_color': '#4B5F83'})
     stop.add_argument('--如果触发心情控制', default=default('--如果触发心情控制'), choices=['是', '否'], help='若是, 等待回复, 完成本次, 停止\n若否, 等待回复, 完成本次, 继续', gooey_options={'label_color': '#4B5F83'})
     stop.add_argument('--如果到达120级', default=default('--如果到达120级'), choices=['是', '否'], help='当舰船从119级升至120级时: \n若是, 完成本次, 停止出击\n若否, 继续出击', gooey_options={'label_color': '#4B5F83'})
     # stop.add_argument('--如果船舱已满', default=default('--如果船舱已满'), choices=['是', '否'])
@@ -313,6 +313,22 @@ def main(ini_name=''):
 
     reward_data_key = reward_parser.add_argument_group('作战档案', '如果已经领取则自动跳过', gooey_options={'label_color': '#931D03'})
     reward_data_key.add_argument('--启用档案密钥收获', default=default('--启用档案密钥收获'), help='领取作战档案的档案密钥', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+
+    reward_guild = reward_parser.add_argument_group('Guild', 'Check Guild Logistics and Operations. Running for every reward loop.', gooey_options={'label_color': '#931D03'})
+    reward_guild.add_argument('--enable_guild_logistics', default=default('--enable_guild_logistics'), help='Enable logistics actions if applicable.', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--enable_guild_operations', default=default('--enable_guild_operations'), help='Not supported yet.', choices=['否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--guild_interval', default=default('--guild_interval'),
+                             help='How many minutes to trigger checking. Recommend to set a time range, such as "10, 40"', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_items = reward_guild.add_argument_group('Logistics item input', 'Available items: t1, t2, t3, oxycola, coolant, coins, oil, and merit. Omitting an item will skip it. Less error-prone with many specified', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_items.add_argument('--guild_logistics_item_order_string', default=default('--guild_logistics_item_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates = reward_guild.add_argument_group('Logistics plate input', 'Available plates: torpedo, antiair, plane, gun, and general. Omitting a plate will skip it. Less error-prone with many specified', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--guild_logistics_plate_t1_order_string', default=default('--guild_logistics_plate_t1_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--guild_logistics_plate_t2_order_string', default=default('--guild_logistics_plate_t2_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--guild_logistics_plate_t3_order_string', default=default('--guild_logistics_plate_t3_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
 
     # ==========设备设置==========
     emulator_parser = subs.add_parser('设备设置')
