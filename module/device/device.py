@@ -67,8 +67,6 @@ class Device(Screenshot, Control, AppControl):
         """
         # Check screen size
         width, height = self.image.size
-        if height > width:
-            width, height = height, width
         logger.attr('Screen_size', f'{width}x{height}')
         if width == 1280 and height == 720:
             return True
@@ -111,3 +109,11 @@ class Device(Screenshot, Control, AppControl):
 
         if self.config.ENABLE_GAME_STUCK_HANDLER:
             raise GameStuckError(f'Wait too long')
+
+    def app_start(self):
+        super().app_start()
+        self.stuck_record_clear()
+
+    def app_stop(self):
+        super().app_stop()
+        self.stuck_record_clear()

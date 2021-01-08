@@ -5,7 +5,8 @@ from gooey import Gooey, GooeyParser
 
 import module.config.server as server
 from alas import AzurLaneAutoScript
-from module.config.dictionary import dic_event, dic_chi_to_eng
+from module.config.dictionary import dic_chi_to_eng
+from module.config.event import dic_event, dic_archives
 from module.config.update import get_config
 from module.logger import pyw_name
 from module.research.preset import DICT_FILTER_PRESET
@@ -71,15 +72,19 @@ def main(ini_name=''):
     # Load translation dictionary
     dic_gui_to_ini = dic_chi_to_eng  # GUI translation dictionary here.
     dic_gui_to_ini.update(dic_event[server.server])
+    dic_gui_to_ini.update(dic_archives[server.server])
     dic_ini_to_gui = {v: k for k, v in dic_gui_to_ini.items()}
     # Event list
     event_folder = [f for f in dic_event[server.server].values() if f.startswith('event_')]
-    event_latest = sorted([f for f in event_folder], reverse=True)[0]
+    event_latest = event_folder[-1]
     event_folder = [dic_ini_to_gui.get(f, f) for f in event_folder][::-1]
     event_latest = dic_ini_to_gui.get(event_latest, event_latest)
+    # Archives list
+    archives_folder = [f for f in dic_archives[server.server].values() if f.startswith('war_archives_')]
+    archives_folder = [dic_ini_to_gui.get(f, f) for f in archives_folder][::-1]
     # Raid list
     raid_folder = [f for f in dic_event[server.server].values() if f.startswith('raid_')]
-    raid_latest = sorted([f for f in raid_folder], reverse=True)[0]
+    raid_latest = raid_folder[-1]
     raid_folder = [dic_ini_to_gui.get(f, f) for f in raid_folder][::-1]
     raid_latest = dic_ini_to_gui.get(raid_latest, raid_latest)
     # Research preset list
@@ -139,7 +144,7 @@ def main(ini_name=''):
     stop.add_argument('--如果获得新船', default=default('--如果获得新船'), choices=['是', '否'],
                       help='获得新船后进入收获循环',
                       gooey_options={'label_color': '#4B5F83'})
-    stop.add_argument('--如果地图开荒', default=default('--如果地图开荒'), choices=['否', '地图通关', '地图三星', '地图绿海不打三星', '地图绿海'], help='如果已经满足, 无视此设置', gooey_options={'label_color': '#4B5F83'})
+    stop.add_argument('--如果地图开荒', default=default('--如果地图开荒'), choices=['否', '地图通关', '地图三星', '地图绿海不打三星', '地图绿海'], help='', gooey_options={'label_color': '#4B5F83'})
     stop.add_argument('--如果触发心情控制', default=default('--如果触发心情控制'), choices=['是', '否'], help='若是, 等待回复, 完成本次, 停止\n若否, 等待回复, 完成本次, 继续', gooey_options={'label_color': '#4B5F83'})
     stop.add_argument('--如果到达120级', default=default('--如果到达120级'), choices=['是', '否'], help='当舰船从119级升至120级时: \n若是, 完成本次, 停止出击\n若否, 继续出击', gooey_options={'label_color': '#4B5F83'})
     # stop.add_argument('--如果船舱已满', default=default('--如果船舱已满'), choices=['是', '否'])
@@ -208,16 +213,17 @@ def main(ini_name=''):
     # 退役选项
     retire = setting_parser.add_argument_group('退役设置', '', gooey_options={'label_color': '#931D03'})
     retire.add_argument('--启用退役', default=default('--启用退役'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
-    retire.add_argument('--退役方案', default=default('--退役方案'), choices=['强化角色', '一键退役', '传统退役'], gooey_options={'label_color': '#4B5F83'})
+    retire.add_argument('--退役方案', default=default('--退役方案'), choices=['强化角色', '一键退役', '传统退役'], help='若选择强化, 当强化材料不足时, 将使用一键退役', gooey_options={'label_color': '#4B5F83'})
     retire.add_argument('--退役数量', default=default('--退役数量'), choices=['退役全部', '退役10个'], gooey_options={'label_color': '#4B5F83'})
     retire.add_argument('--强化常用角色', default=default('--强化常用角色'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     retire.add_argument('--强化过滤字符串', default=default('--强化过滤字符串'), help='格式: "cv > bb > ...", 留空则使用默认强化方式', gooey_options={'label_color': '#4B5F83'})
+    retire.add_argument('--强化每分类数量', default=default('--强化每分类数量'), help='每个舰船分类最多强化多少舰船, 在战斗中的舰船会被跳过且不计入', gooey_options={'label_color': '#4B5F83'})
 
     rarity = retire.add_argument_group('退役稀有度', '暂不支持舰种选择, 使用一键退役时忽略以下选项', gooey_options={'label_color': '#931D03'})
     rarity.add_argument('--退役白皮', default=default('--退役白皮'), choices=['是', '否'], help='N', gooey_options={'label_color': '#4B5F83'})
     rarity.add_argument('--退役蓝皮', default=default('--退役蓝皮'), choices=['是', '否'], help='R', gooey_options={'label_color': '#4B5F83'})
-    rarity.add_argument('--退役紫皮', default=default('--退役紫皮'), choices=['是', '否'], help='SR', gooey_options={'label_color': '#4B5F83'})
-    rarity.add_argument('--退役金皮', default=default('--退役金皮'), choices=['是', '否'], help='SSR', gooey_options={'label_color': '#4B5F83'})
+    # rarity.add_argument('--退役紫皮', default=default('--退役紫皮'), choices=['是', '否'], help='SR', gooey_options={'label_color': '#4B5F83'})
+    # rarity.add_argument('--退役金皮', default=default('--退役金皮'), choices=['是', '否'], help='SSR', gooey_options={'label_color': '#4B5F83'})
 
     # 掉落记录
     drop = setting_parser.add_argument_group('掉落记录', '保存掉落物品的截图, 启用后会放缓结算时的点击速度', gooey_options={'label_color': '#931D03'})
@@ -241,6 +247,8 @@ def main(ini_name=''):
     reward_general.add_argument('--启用石油收获', default=default('--启用石油收获'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     reward_general.add_argument('--启用物资收获', default=default('--启用物资收获'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     reward_general.add_argument('--启用任务收获', default=default('--启用任务收获'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_general.add_argument('--启用档案密钥收获', default=default('--启用档案密钥收获'), help='领取作战档案的档案密钥, 如果已经领取则自动跳过', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+
 
     reward_dorm = reward_parser.add_argument_group('后宅设置', '', gooey_options={'label_color': '#931D03'})
     reward_dorm.add_argument('--启用后宅收获', default=default('--启用后宅收获'), choices=['是', '否'], help='收获好感度和家具币', gooey_options={'label_color': '#4B5F83'})
@@ -301,11 +309,22 @@ def main(ini_name=''):
     research_output.add_argument('--科研项目选择预设', default=default('--科研项目选择预设'), choices=research_preset, gooey_options={'label_color': '#4B5F83'})
     research_output.add_argument('--科研过滤字符串', default=default('--科研过滤字符串'), help='仅在科研预设选择为自定义时启用', gooey_options={'label_color': '#4B5F83'})
 
-    reward_buy = reward_parser.add_argument_group('商店购买', '如果已经买过则自动跳过', gooey_options={'label_color': '#931D03'})
-    reward_buy.add_argument('--买指挥喵', default=default('--买指挥喵'), help='从0到15, 不需要就填0', gooey_options={'label_color': '#4B5F83'})
+    reward_meowfficer = reward_parser.add_argument_group('商店购买', '如果已经买过则自动跳过', gooey_options={'label_color': '#931D03'})
+    reward_meowfficer.add_argument('--买指挥喵', default=default('--买指挥喵'), help='从0到15, 不需要就填0', gooey_options={'label_color': '#4B5F83'})
+    reward_meowfficer.add_argument('--训练指挥喵', default=default('--训练指挥喵'), help='启用指挥喵训练, 每天收一只, 周日收获全部', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
 
-    reward_data_key = reward_parser.add_argument_group('作战档案', '如果已经领取则自动跳过', gooey_options={'label_color': '#931D03'})
-    reward_data_key.add_argument('--启用档案密钥收获', default=default('--启用档案密钥收获'), help='领取作战档案的档案密钥', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild = reward_parser.add_argument_group('大舰队', '检查大舰队后勤和大舰队作战', gooey_options={'label_color': '#931D03'})
+    reward_guild.add_argument('--启用大舰队后勤', default=default('--启用大舰队后勤'), help='领取大舰队任务, 提交筹备物资, 领取舰队奖励', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--启用大舰队作战', default=default('--启用大舰队作战'), help='暂不支持', choices=['否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--大舰队收获间隔', default=default('--大舰队收获间隔'), help='每隔多少分钟触发, 推荐使用时间区间, 比如"10, 40"', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_items = reward_guild.add_argument_group('筹备物品提交顺序', '可用字符: t1, t2, t3, oxycola, coolant, coins, oil, and merit. 省略某个字符来跳过该物品的提交', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_items.add_argument('--物品提交顺序', default=default('--物品提交顺序'), gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates = reward_guild.add_argument_group('筹备部件提交顺序', '可用字符: torpedo, antiair, plane, gun, and general. 省略某个字符来跳过该物品的提交', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--部件提交顺序T1', default=default('--部件提交顺序T1'), gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--部件提交顺序T2', default=default('--部件提交顺序T2'), gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--部件提交顺序T3', default=default('--部件提交顺序T3'), gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss = reward_guild.add_argument_group('Operations guild raid boss input', '', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_auto', default=default('--enable_guild_operations_boss_auto'), help='Enable auto-battle of guild raid boss.', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
 
     # ==========设备设置==========
     emulator_parser = subs.add_parser('设备设置')
@@ -371,8 +390,8 @@ def main(ini_name=''):
 
     # 演习设置
     exercise = daily_parser.add_argument_group('演习设置', '', gooey_options={'label_color': '#931D03'})
-    exercise.add_argument('--演习对手选择', default=default('--演习对手选择'), choices=['经验最多', '最简单', '先最简单再经验最多'], help='', gooey_options={'label_color': '#4B5F83'})
-    exercise.add_argument('--演习次数保留', default=default('--演习次数保留'), help='暂时仅支持保留0个', gooey_options={'label_color': '#4B5F83'})
+    exercise.add_argument('--演习对手选择', default=default('--演习对手选择'), choices=['经验最多', '最简单', '最左边', '先最简单再经验最多'], help='', gooey_options={'label_color': '#4B5F83'})
+    exercise.add_argument('--演习次数保留', default=default('--演习次数保留'), help='例如 1, 表示打到1/10停止', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--演习尝试次数', default=default('--演习尝试次数'), help='每个对手的尝试次数, 打不过就换', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--演习SL阈值', default=default('--演习SL阈值'), help='HP<阈值时撤退', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--演习低血量确认时长', default=default('--演习低血量确认时长'), help='HP低于阈值后, 过一定时长才会撤退\n推荐 1.0 ~ 3.0', gooey_options={'label_color': '#4B5F83'})
@@ -438,6 +457,13 @@ def main(ini_name=''):
     sos.add_argument('--第9章潜艇图队伍', default=default('--第9章潜艇图队伍'), gooey_options={'label_color': '#4B5F83'})
     sos.add_argument('--第10章潜艇图队伍', default=default('--第10章潜艇图队伍'), gooey_options={'label_color': '#4B5F83'})
 
+    # ==========作战档案==========
+    war_archives_parser = subs.add_parser('作战档案')
+    war_archives = war_archives_parser.add_argument_group(
+        '作战档案设置', '输入地图名称, 然后选择对应的活动', gooey_options={'label_color': '#931D03'})
+    war_archives.add_argument('--作战档案地图', default=default('--作战档案地图'), help='输入地图名称, 不分大小写, 例如 D3, SP3, HT6', gooey_options={'label_color': '#4B5F83'})
+    war_archives.add_argument('--作战档案活动', default=default('--作战档案活动'), choices=archives_folder, help='在下拉菜单中选择活动', gooey_options={'label_color': '#4B5F83'})
+
     # ==========共斗活动==========
     raid_parser = subs.add_parser('共斗活动')
     raid = raid_parser.add_argument_group('选择共斗', '', gooey_options={'label_color': '#931D03'})
@@ -472,6 +498,11 @@ def main(ini_name=''):
     c_12_4.add_argument('--非大型敌人进图忍耐', default=default('--非大型敌人进图忍耐'), choices=['0', '1', '2'], help='忍受进场多少战没有大型', gooey_options={'label_color': '#4B5F83'})
     c_12_4.add_argument('--非大型敌人撤退忍耐', default=default('--非大型敌人撤退忍耐'), choices=['0', '1', '2', '10'], help='没有大型之后还会打多少战, 不挑敌人选10', gooey_options={'label_color': '#4B5F83'})
     c_12_4.add_argument('--拣弹药124', default=default('--拣弹药124'), choices=['2', '3', '4', '5'], help='多少战后拣弹药', gooey_options={'label_color': '#4B5F83'})
+
+    # ==========OS semi auto==========
+    os_semi_parser = subs.add_parser('大世界辅助点击')
+    os_semi = os_semi_parser.add_argument_group('大世界辅助点击', '辅助点击战斗准备和战斗结算', gooey_options={'label_color': '#931D03'})
+    os_semi.add_argument('--大世界跳过剧情', default=default('--大世界跳过剧情'), choices=['是', '否'], help='注意, 这会自动点击地图交互的选项', gooey_options={'label_color': '#4B5F83'})
 
     args = parser.parse_args()
 

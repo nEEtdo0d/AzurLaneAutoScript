@@ -22,13 +22,20 @@ class MapOperation(MysteryHandler, FleetPreparation, Retirement, FastForwardHand
         Switch fleet.
         """
         logger.info('Switch over')
-        if self.appear_then_click(SWITCH_OVER):
-            pass
-        else:
+        if not self.appear(SWITCH_OVER):
             logger.warning('No buttons detected.')
+            return False
 
-        self.device.sleep((1, 1.5))
-        # self.ensure_no_info_bar()
+        FLEET_NUM.load_color(self.device.image)
+        FLEET_NUM._match_init = True
+        while 1:
+            self.device.click(SWITCH_OVER)
+            self.device.sleep((1, 1.5))
+            self.device.screenshot()
+            if not FLEET_NUM.match(self.device.image, offset=(0, 0), threshold=0.9):
+                break
+            logger.warning('Fleet switch failed. Retrying.')
+        return True
 
     def enter_map(self, button, mode='normal'):
         """Enter a campaign.
@@ -57,7 +64,7 @@ class MapOperation(MysteryHandler, FleetPreparation, Retirement, FastForwardHand
             if map_timer.reached() and self.handle_map_preparation():
                 self.map_get_info()
                 self.handle_fast_forward()
-                if self.handle_map_stop():
+                if self.triggered_map_stop():
                     self.enter_map_cancel()
                     raise ScriptEnd(f'Reach condition: {self.config.STOP_IF_MAP_REACH}')
                 self.device.click(MAP_PREPARATION)
@@ -77,6 +84,10 @@ class MapOperation(MysteryHandler, FleetPreparation, Retirement, FastForwardHand
 
             # Retire
             if self.handle_retirement():
+                continue
+
+            # Use Data Key
+            if self.handle_use_data_key():
                 continue
 
             # Emotion

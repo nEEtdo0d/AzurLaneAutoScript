@@ -136,7 +136,7 @@ class AzurLaneConfig:
     STOP_IF_TRIGGER_EMOTION_LIMIT = False
     STOP_IF_DOCK_FULL = False
     STOP_IF_REACH_LV120 = False
-    STOP_IF_MAP_REACH = 'no' # no, map_100, map_3_star, map_green_without_3_star, map_green
+    STOP_IF_MAP_REACH = 'no'  # no, map_100, map_3_star, map_green_without_3_star, map_green
     STOP_IF_GET_SHIP = False
 
     MAP_CLEAR_ALL_THIS_TIME = False
@@ -145,7 +145,7 @@ class AzurLaneConfig:
     STAR_REQUIRE_2 = 2
     STAR_REQUIRE_3 = 3
     # In Dreamwaker's Butterfly (event_20200917) add new stage entrance icons, called `blue`.
-    STAGE_ENTRANCE = ['normal']  # normal, blue
+    STAGE_ENTRANCE = ['normal']  # normal, blue, half
 
     """
     module.event
@@ -226,7 +226,7 @@ class AzurLaneConfig:
     module.exercise
     """
     ENABLE_EXERCISE = True
-    EXERCISE_CHOOSE_MODE = 'max_exp'
+    EXERCISE_CHOOSE_MODE = 'max_exp'  # 'max_exp', 'easiest', 'leftmost', 'easiest_else_exp'
     EXERCISE_PRESERVE = 0
     LOW_HP_THRESHOLD = 0.40
     LOW_HP_CONFIRM_WAIT = 1.0
@@ -277,8 +277,10 @@ class AzurLaneConfig:
     MAP_HAS_PT_BONUS = False  # 100% PT bonus if success to catch enemy else 50%. Retreat get 0%.
     MAP_IS_ONE_TIME_STAGE = False
     MAP_HAS_PORTAL = False
+    MAP_HAS_LAND_BASED = False
     MAP_ENEMY_TEMPLATE = ['Light', 'Main', 'Carrier', 'Treasure']
     MAP_SIREN_TEMPLATE = ['DD', 'CL', 'CA', 'BB', 'CV']
+    MAP_ENEMY_GENRE_DETECTION_SCALING = {}  # Key: str, Template name, Value: float, scaling factor
     MAP_SIREN_MOVE_WAIT = 1.5  # The enemy moving takes about 1.2 ~ 1.5s.
     MAP_SIREN_COUNT = 0
     MAP_MYSTERY_HAS_CARRIER = False
@@ -304,6 +306,7 @@ class AzurLaneConfig:
     RETIREMENT_METHOD = 'one_click_retire'  # enhance, old_retire, one_click_retire
     ENHANCE_FAVOURITE = False
     ENHANCE_ORDER_STRING = ''
+    ENHANCE_CHECK_PER_CATEGORY = 2
     DOCK_FULL_TRIGGERED = False
     GET_SHIP_TRIGGERED = False
     RETIRE_AMOUNT = 'all'  # all, 10
@@ -414,6 +417,7 @@ class AzurLaneConfig:
         'expire_longer_than_6': -11,
         'duration_shorter_than_2': 11,
         'duration_longer_than_6': -11,
+        'doa_daily': 500,
     }
     COMMISSION_TIME_LIMIT = 0
 
@@ -426,16 +430,26 @@ class AzurLaneConfig:
     # TACTICAL_NIGHT_RANGE = future_time_range('23:30-06:30')  # (Night start, night end), datetime.datetime instance.
 
     BUY_MEOWFFICER = 0  # 0 to 15.
+    ENABLE_TRAIN_MEOWFFICER = False
 
     ENABLE_DORM_FEED = True
     ENABLE_DORM_REWARD = True
     # When having 6 ships in dorm, to use 6 kind of food, need interval (in minutes) greater than:
     # (14, 28, 42, 70, 139, 278)
     DORM_FEED_INTERVAL = '278, 480'  # str, such as '20', '10, 40'.
-    DORM_COLLECT_INTERVAL = '60, 180' # str, such as '20', '10, 40'.
+    DORM_COLLECT_INTERVAL = '60, 180'  # str, such as '20', '10, 40'.
     DORM_FEED_FILTER = '20000 > 10000 > 5000 > 3000 > 2000 > 1000'
 
     ENABLE_DATA_KEY_COLLECT = True
+
+    ENABLE_GUILD_LOGISTICS = False
+    ENABLE_GUILD_OPERATIONS = False
+    GUILD_INTERVAL = '40, 60' # str, such as '20', '10, 40'.
+    GUILD_LOGISTICS_ITEM_ORDER_STRING = 't1 > t2 > t3 > oxycola > coolant > coins > oil > merit'
+    GUILD_LOGISTICS_PLATE_T1_ORDER_STRING = 'torpedo > antiair > plane > gun > general'
+    GUILD_LOGISTICS_PLATE_T2_ORDER_STRING = 'torpedo > antiair > plane > gun > general'
+    GUILD_LOGISTICS_PLATE_T3_ORDER_STRING = 'torpedo > antiair > plane > gun > general'
+    ENABLE_GUILD_OPERATIONS_BOSS_AUTO = False
 
     """
     module.research
@@ -460,6 +474,13 @@ class AzurLaneConfig:
     SOS_FLEETS_CHAPTER_10 = [4, 6, 1]
 
     """
+    module.war_archives
+    """
+    USE_DATA_KEY = False
+    WAR_ARCHIVES_NAME = ''
+    WAR_ARCHIVES_STAGE = ''
+
+    """
     C_1_1_affinity_farming
     """
     C11_AFFINITY_BATTLE_COUNT = 0
@@ -480,6 +501,11 @@ class AzurLaneConfig:
     C124_NON_S3_ENTER_TOLERANCE = 1
     C124_NON_S3_WITHDRAW_TOLERANCE = 0
     C124_AMMO_PICK_UP = 3
+
+    """
+    Os_semi_auto
+    """
+    ENABLE_OS_SEMI_STORY_SKIP = True
 
     def create_folder(self):
         for folder in [self.ASSETS_FOLDER, self.PERSPECTIVE_ERROR_LOG_FOLDER, self.ERROR_LOG_FOLDER]:
@@ -603,7 +629,8 @@ class AzurLaneConfig:
         self.RETIRE_AMOUNT = option['retire_amount'].split('_')[1]
         self.ENHANCE_FAVOURITE = to_bool(option['enhance_favourite'])
         self.ENHANCE_ORDER_STRING = option['enhance_order_string']
-        for r in ['n', 'r', 'sr', 'ssr']:
+        self.ENHANCE_CHECK_PER_CATEGORY = int(option['enhance_check_per_category'])
+        for r in ['n', 'r']:
             self.__setattr__(f'RETIRE_{r.upper()}', to_bool(option[f'retire_{r}']))
 
         # Reward
@@ -614,7 +641,8 @@ class AzurLaneConfig:
                      'enable_dorm_reward', 'enable_dorm_feed',
                      'enable_commission_reward', 'enable_tactical_reward', 'enable_daily_reward',
                      'enable_research_reward',
-                     'enable_data_key_collect']:
+                     'enable_data_key_collect', 'enable_train_meowfficer',
+                     'enable_guild_logistics', 'enable_guild_operations', 'enable_guild_operations_boss_auto']:
             self.__setattr__(attr.upper(), to_bool(option[attr]))
         if not option['commission_time_limit'].isdigit():
             self.COMMISSION_TIME_LIMIT = future_time(option['commission_time_limit'])
@@ -637,6 +665,11 @@ class AzurLaneConfig:
         self.RESEARCH_FILTER_PRESET = option['research_filter_preset']
         self.RESEARCH_FILTER_STRING = option['research_filter_string']
         self.BUY_MEOWFFICER = int(option['buy_meowfficer'])
+        self.GUILD_INTERVAL = option['guild_interval']
+        self.GUILD_LOGISTICS_ITEM_ORDER_STRING = option['guild_logistics_item_order_string']
+        self.GUILD_LOGISTICS_PLATE_T1_ORDER_STRING = option['guild_logistics_plate_t1_order_string']
+        self.GUILD_LOGISTICS_PLATE_T2_ORDER_STRING = option['guild_logistics_plate_t2_order_string']
+        self.GUILD_LOGISTICS_PLATE_T3_ORDER_STRING = option['guild_logistics_plate_t3_order_string']
 
         option = config['Main']
         self.CAMPAIGN_MODE = option['campaign_mode']
@@ -707,6 +740,11 @@ class AzurLaneConfig:
         for chapter in range(3, 11):
             self.__setattr__(f'SOS_FLEETS_CHAPTER_{chapter}', to_list(option[f'sos_fleets_chapter_{chapter}']))
 
+        # War archives
+        option = config['War_archives']
+        self.WAR_ARCHIVES_NAME = option['war_archives_name']
+        self.WAR_ARCHIVES_STAGE = option['war_archives_stage'].lower()
+
         # Raid
         option = config['Raid']
         self.RAID_NAME = option['raid_name']
@@ -741,6 +779,10 @@ class AzurLaneConfig:
         self.C124_NON_S3_ENTER_TOLERANCE = int(option['non_s3_enemy_enter_tolerance'])
         self.C124_NON_S3_WITHDRAW_TOLERANCE = int(option['non_s3_enemy_withdraw_tolerance'])
         self.C124_AMMO_PICK_UP = int(option['ammo_pick_up_124'])
+
+        # OS semi auto
+        option = config['Os_semi_auto']
+        self.ENABLE_OS_SEMI_STORY_SKIP = to_bool(option['enable_os_semi_story_skip'])
 
     def get_server_timezone(self):
         if self.SERVER == 'en':

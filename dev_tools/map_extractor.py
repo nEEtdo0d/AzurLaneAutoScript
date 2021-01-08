@@ -12,6 +12,14 @@ This an auto-tool to extract map files used in Alas.
 """
 
 DIC_SIREN_NAME_CHI_TO_ENG = {
+    # Siren Winter's Crown, Fallen Wings
+    'sairenquzhu': 'DD',
+    'sairenqingxun': 'CL',
+    'sairenzhongxun': 'CA',
+    'sairenzhanlie': 'BB',
+    'sairenhangmu': 'CV',
+    'sairenqianting': 'SS',
+
     # Siren cyan
     'sairenquzhu_i': 'DD',
     'sairenqingxun_i': 'CL',
@@ -45,6 +53,32 @@ DIC_SIREN_NAME_CHI_TO_ENG = {
     'sipeibojue_5': 'SpeeIdol',
     'luoen_idol': 'RoonIdol',
     'guanghui_idol': 'IllustriousIdol',
+
+    # Vacation Lane
+    'maliluosi_doa': 'MarieRoseDOA',
+    'haixiao_doa': 'MisakiDOA',
+    'xia_doa': 'KasumiDOA',
+    'zhixiao_doa': 'NagisaDOA',
+
+    # The Enigma and the Shark
+    'nvjiang': 'Amazon',
+
+    # Inverted Orthant
+    'luodeni': 'Rodney',
+    'huangjiafangzhou': 'ArkRoyal',
+    'jingang': 'Kongo',
+    'shancheng': 'Yamashiro',
+    'z24': 'Z24',
+    'niulunbao': 'Nuremberg',
+    'longqibing': 'Carabiniere',
+    'sairenquzhu_ii': 'DD',
+    'sairenqingxun_ii': 'CL',
+    'sairenzhanlie_ii': 'BB',
+    'sairenhangmu_ii': 'CV',
+    'qinraozhe': 'Intruder',
+    'xianghe': 'Shokaku',
+    'ruihe': 'Zuikaku',
+    'shitelasai': 'PeterStrasser',
 }
 
 
@@ -53,6 +87,20 @@ def load_lua(folder, file, prefix):
         text = f.read()
     print(f'Loading {file}')
     result = slpp.decode(text[prefix:])
+    print(f'{len(result.keys())} items loaded')
+    return result
+
+
+def load_lua_by_function(folder, file):
+    with open(os.path.join(folder, file), 'r', encoding='utf-8') as f:
+        text = f.read()
+    print(f'Loading {file}')
+    matched = re.findall('function \(\)(.*?)end\(\)', text, re.S)
+    result = {}
+    for func in matched:
+        add = slpp.decode('{' + func + '}')
+        result.update(add)
+
     print(f'{len(result.keys())} items loaded')
     return result
 
@@ -77,34 +125,16 @@ class MapData:
         self.name = data['name']
         self.profiles = data['profiles']
         self.map_id = data['id']
+
         try:
-            battle_count = max(data['boss_refresh'], max(data['enemy_refresh'].keys()))
-        except ValueError:
-            battle_count = 0
-        self.spawn_data = [{'battle': index} for index in range(battle_count + 1)]
-        try:
-            # spawn_data
-            for index, count in data['enemy_refresh'].items():
-                if count:
-                    spawn = self.spawn_data[index]
-                    spawn['enemy'] = spawn.get('enemy', 0) + count
-            if ''.join([str(item) for item in data['elite_refresh'].values()]) != '100':  # Some data is incorrect
-                for index, count in data['elite_refresh'].items():
-                    if count:
-                        spawn = self.spawn_data[index]
-                        spawn['enemy'] = spawn.get('enemy', 0) + count
-            for index, count in data['ai_refresh'].items():
-                if count:
-                    spawn = self.spawn_data[index]
-                    spawn['siren'] = spawn.get('siren', 0) + count
-            for index, count in data['box_refresh'].items():
-                if count:
-                    spawn = self.spawn_data[index]
-                    spawn['mystery'] = spawn.get('mystery', 0) + count
-            try:
-                self.spawn_data[data['boss_refresh']]['boss'] = 1
-            except IndexError:
-                pass
+            self.spawn_data = self.parse_spawn_data(data)
+            if data_loop is not None:
+                self.spawn_data_loop = self.parse_spawn_data(data_loop)
+                if len(self.spawn_data) == len(self.spawn_data_loop) \
+                        and all([s1 == s2 for s1, s2 in zip(self.spawn_data, self.spawn_data_loop)]):
+                    self.spawn_data_loop = None
+            else:
+                self.spawn_data_loop = None
 
             # map_data
             # {0: {0: 6, 1: 8, 2: False, 3: 0}, ...}
@@ -129,6 +159,18 @@ class MapData:
                             target = location2node((effect[2], effect[1]))
                             self.portal.append((address, target))
 
+            # land_based
+            # land_based = {{6, 7, 1}, ...}
+            # Format: {y, x, rotation}
+            land_based_rotation_dict = {1: 'up', 2: 'down', 3: 'left', 4: 'right'}
+            self.land_based = []
+            if isinstance(data['land_based'], dict):
+                for lb in data['land_based'].values():
+                    y, x, r = lb.values()
+                    if r not in land_based_rotation_dict:
+                        continue
+                    self.land_based.append([location2node((x, y)), land_based_rotation_dict[r]])
+
             # config
             self.MAP_SIREN_TEMPLATE = []
             self.MOVABLE_ENEMY_TURN = set()
@@ -138,13 +180,15 @@ class MapData:
                 exped_data = EXPECTATION_DATA[siren_id]
                 name = exped_data['icon']
                 name = DIC_SIREN_NAME_CHI_TO_ENG.get(name, name)
-                self.MAP_SIREN_TEMPLATE.append(name)
+                if name not in self.MAP_SIREN_TEMPLATE:
+                    self.MAP_SIREN_TEMPLATE.append(name)
                 self.MOVABLE_ENEMY_TURN.add(int(exped_data['ai_mov']))
             self.MAP_HAS_MOVABLE_ENEMY = bool(len(self.MOVABLE_ENEMY_TURN))
             self.MAP_HAS_MAP_STORY = len(data['story_refresh_boss']) > 0
             self.MAP_HAS_FLEET_STEP = bool(data['is_limit_move'])
             self.MAP_HAS_AMBUSH = bool(data['is_ambush']) or bool(data['is_air_attack'])
             self.MAP_HAS_PORTAL = bool(len(self.portal))
+            self.MAP_HAS_LAND_BASED = bool(len(self.land_based))
             for n in range(1, 4):
                 self.__setattr__(f'STAR_REQUIRE_{n}', data[f'star_require_{n}'])
         except Exception as e:
@@ -173,6 +217,38 @@ class MapData:
 
         return map_data
 
+    @staticmethod
+    def parse_spawn_data(data):
+        try:
+            battle_count = max(data['boss_refresh'], max(data['enemy_refresh'].keys()))
+        except ValueError:
+            battle_count = 0
+        spawn_data = [{'battle': index} for index in range(battle_count + 1)]
+
+        for index, count in data['enemy_refresh'].items():
+            if count:
+                spawn = spawn_data[index]
+                spawn['enemy'] = spawn.get('enemy', 0) + count
+        if ''.join([str(item) for item in data['elite_refresh'].values()]) != '100':  # Some data is incorrect
+            for index, count in data['elite_refresh'].items():
+                if count:
+                    spawn = spawn_data[index]
+                    spawn['enemy'] = spawn.get('enemy', 0) + count
+        for index, count in data['ai_refresh'].items():
+            if count:
+                spawn = spawn_data[index]
+                spawn['siren'] = spawn.get('siren', 0) + count
+        for index, count in data['box_refresh'].items():
+            if count:
+                spawn = spawn_data[index]
+                spawn['mystery'] = spawn.get('mystery', 0) + count
+        try:
+            spawn_data[data['boss_refresh']]['boss'] = 1
+        except IndexError:
+            pass
+
+        return spawn_data
+
     def map_file_name(self):
         name = self.chapter_name.replace('-', '_').lower()
         if name[0].isdigit():
@@ -184,8 +260,13 @@ class MapData:
         Returns:
             list(str): Python code in map file.
         """
-        header = """
-            from module.campaign.campaign_base import CampaignBase
+        if IS_WAR_ARCHIVES:
+            base_import = 'from ..campaign_war_archives.campaign_base import CampaignBase'
+        else:
+            base_import = 'from module.campaign.campaign_base import CampaignBase'
+
+        header = f"""
+            {base_import}
             from module.map.map_base import CampaignMap
             from module.map.map_grids import SelectedGrids, RoadGrids
             from module.logger import logger
@@ -209,7 +290,7 @@ class MapData:
             f'MAP.camera_data = {[location2node(loca) for loca in camera_data]}')
         camera_sp = camera_spawn_point(camera_data, sp_list=[k for k, v in self.map_data.items() if v == 'SP'])
         lines.append(f'MAP.camera_data_spawn_point = {[location2node(loca) for loca in camera_sp]}')
-        if len(self.portal):
+        if self.MAP_HAS_PORTAL:
             lines.append(f'MAP.portal_data = {self.portal}')
         lines.append('MAP.map_data = \"\"\"')
         for y in range(self.shape[1] + 1):
@@ -224,10 +305,17 @@ class MapData:
         for y in range(self.shape[1] + 1):
             lines.append('    ' + ' '.join(['50'] * (self.shape[0] + 1)))
         lines.append('\"\"\"')
+        if self.MAP_HAS_LAND_BASED:
+            lines.append(f'MAP.land_based_data = {self.land_based}')
         lines.append('MAP.spawn_data = [')
         for battle in self.spawn_data:
             lines.append('    ' + str(battle) + ',')
         lines.append(']')
+        if self.spawn_data_loop is not None:
+            lines.append('MAP.spawn_data_loop = [')
+            for battle in self.spawn_data_loop:
+                lines.append('    ' + str(battle) + ',')
+            lines.append(']')
         for y in range(self.shape[1] + 1):
             lines.append(', '.join([location2node((x, y)) for x in range(self.shape[0] + 1)]) + ', \\')
         lines.append('    = MAP.flatten()')
@@ -254,6 +342,8 @@ class MapData:
         lines.append(f'    MAP_HAS_AMBUSH = {self.MAP_HAS_AMBUSH}')
         if self.MAP_HAS_PORTAL:
             lines.append(f'    MAP_HAS_PORTAL = {self.MAP_HAS_PORTAL}')
+        if self.MAP_HAS_LAND_BASED:
+            lines.append(f'    MAP_HAS_LAND_BASED = {self.MAP_HAS_LAND_BASED}')
         for n in range(1, 4):
             if not self.__getattribute__(f'STAR_REQUIRE_{n}'):
                 lines.append(f'    STAR_REQUIRE_{n} = 0')
@@ -390,26 +480,29 @@ This an auto-tool to extract map files used in Alas.
 
 Git clone https://github.com/Dimbreath/AzurLaneData, to get the decrypted scripts.
 Arguments:
-    FILE:      Folder contains `chapter_template.lua` and `expedition_data_template.lua`, 
-               Such as '<your_folder>/<server>/sharecfg'
-    FOLDER:    Folder to save, './campaign/test'
-    KEYWORD:   A keyword in map name, such as '短兵相接' (7-2, zh-CN), 'Counterattack!' (3-4, en-US)
-               Or map id, such as 702 (7-2), 1140017 (Iris of Light and Dark D2)
-    SELECT:    True if select all maps in the same event
-               False if extract this map only
-    OVERWRITE: If overwrite existing files
+    FILE:            Folder contains `chapter_template.lua` and `expedition_data_template.lua`,
+                     Such as '<your_folder>/<server>/sharecfg'
+    FOLDER:          Folder to save, './campaign/test'
+    KEYWORD:         A keyword in map name, such as '短兵相接' (7-2, zh-CN), 'Counterattack!' (3-4, en-US)
+                     Or map id, such as 702 (7-2), 1140017 (Iris of Light and Dark D2)
+    SELECT:          True if select all maps in the same event
+                     False if extract this map only
+    OVERWRITE:       If overwrite existing files
+    IS_WAR_ARCHIVES: True if retrieved map is to be
+                     adapted for war_archives usage
 """
 FILE = ''
 FOLDER = './campaign/test'
 KEYWORD = ''
 SELECT = False
 OVERWRITE = True
+IS_WAR_ARCHIVES = False
 
 DATA = load_lua(FILE, 'chapter_template.lua', prefix=36)
 DATA_LOOP = load_lua(FILE, 'chapter_template_loop.lua', prefix=41)
 MAP_EVENT_LIST = load_lua(FILE, 'map_event_list.lua', prefix=34)
 MAP_EVENT_TEMPLATE = load_lua(FILE, 'map_event_template.lua', prefix=38)
-EXPECTATION_DATA = load_lua(FILE, 'expedition_data_template.lua', prefix=43)
+EXPECTATION_DATA = load_lua_by_function(FILE, 'expedition_data_template.lua')
 
 ct = ChapterTemplate()
 ct.extract(ct.get_chapter_by_name(KEYWORD, select=SELECT), folder=FOLDER)

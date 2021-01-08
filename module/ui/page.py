@@ -29,11 +29,15 @@ class Page:
 
 # Main
 page_main = Page(MAIN_CHECK)
+page_campaign_menu = Page(CAMPAIGN_MENU_CHECK)
 page_campaign = Page(CAMPAIGN_CHECK)
 page_fleet = Page(FLEET_CHECK)
-page_main.link(button=MAIN_GOTO_CAMPAIGN, destination=page_campaign)
+page_main.link(button=MAIN_GOTO_CAMPAIGN, destination=page_campaign_menu)
 page_main.link(button=MAIN_GOTO_FLEET, destination=page_fleet)
+page_campaign_menu.link(button=CAMPAIGN_MENU_GOTO_CAMPAIGN, destination=page_campaign)
+page_campaign_menu.link(button=GOTO_MAIN, destination=page_main)
 page_campaign.link(button=GOTO_MAIN, destination=page_main)
+page_campaign.link(button=BACK_ARROW, destination=page_campaign_menu)
 page_fleet.link(button=GOTO_MAIN, destination=page_main)
 
 # Unknown
@@ -41,33 +45,36 @@ page_unknown = Page(None)
 page_unknown.link(button=GOTO_MAIN, destination=page_main)
 
 # Exercise
+# Don't enter page_exercise from page_campaign
 page_exercise = Page(EXERCISE_CHECK)
 page_exercise.link(button=GOTO_MAIN, destination=page_main)
-page_exercise.link(button=BACK_ARROW, destination=page_campaign)
-page_campaign.link(button=CAMPAIGN_GOTO_EXERCISE, destination=page_exercise)
+page_exercise.link(button=BACK_ARROW, destination=page_campaign_menu)
+page_campaign_menu.link(button=CAMPAIGN_MENU_GOTO_EXERCISE, destination=page_exercise)
 
 # Daily
+# Don't enter page_daily from page_campaign
 page_daily = Page(DAILY_CHECK)
 page_daily.link(button=GOTO_MAIN, destination=page_main)
-page_daily.link(button=BACK_ARROW, destination=page_campaign)
-page_campaign.link(button=CAMPAIGN_GOTO_DAILY, destination=page_daily)
+page_daily.link(button=BACK_ARROW, destination=page_campaign_menu)
+page_campaign_menu.link(button=CAMPAIGN_MENU_GOTO_DAILY, destination=page_daily)
 
 # Event
 page_event = Page(EVENT_CHECK)
 page_event.link(button=GOTO_MAIN, destination=page_main)
-page_event.link(button=BACK_ARROW, destination=page_campaign)
-page_campaign.link(button=CAMPAIGN_GOTO_EVENT, destination=page_event)
+# page_event.link(button=BACK_ARROW, destination=page_campaign)
+page_campaign_menu.link(button=CAMPAIGN_MENU_GOTO_EVENT, destination=page_event)
 
 # SP
 page_sp = Page(SP_CHECK)
 page_sp.link(button=GOTO_MAIN, destination=page_main)
-page_sp.link(button=BACK_ARROW, destination=page_campaign)
-page_campaign.link(button=CAMPAIGN_GOTO_EVENT, destination=page_sp)
+# page_sp.link(button=BACK_ARROW, destination=page_campaign)
+page_campaign_menu.link(button=CAMPAIGN_MENU_GOTO_EVENT, destination=page_sp)
 
 # War Archives
+# Don't enter page_archives from page_campaign
 page_archives = Page(WAR_ARCHIVES_CHECK)
-page_archives.link(button=WAR_ARCHIVES_GOTO_CAMPAIGN, destination=page_campaign)
-page_campaign.link(button=CAMPAIGN_GOTO_WAR_ARCHIVES, destination=page_archives)
+page_archives.link(button=WAR_ARCHIVES_GOTO_CAMPAIGN_MENU, destination=page_campaign_menu)
+page_campaign_menu.link(button=CAMPAIGN_MENU_GOTO_WAR_ARCHIVES, destination=page_archives)
 
 # Reward
 page_reward = Page(REWARD_CHECK)
@@ -78,6 +85,11 @@ page_main.link(button=MAIN_GOTO_REWARD, destination=page_reward)
 page_mission = Page(MISSION_CHECK)
 page_mission.link(button=GOTO_MAIN, destination=page_main)
 page_main.link(button=MAIN_GOTO_MISSION, destination=page_mission)
+
+# Guild
+page_guild = Page(GUILD_CHECK)
+page_guild.link(button=GOTO_MAIN, destination=page_main)
+page_main.link(button=MAIN_GOTO_GUILD, destination=page_guild)
 
 # Commission
 # Please don't goto commission from campaign.

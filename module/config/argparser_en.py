@@ -5,7 +5,8 @@ from gooey import Gooey, GooeyParser
 
 import module.config.server as server
 from alas import AzurLaneAutoScript
-from module.config.dictionary import dic_event, dic_true_eng_to_eng
+from module.config.dictionary import dic_true_eng_to_eng
+from module.config.event import dic_event, dic_archives
 from module.config.update import get_config
 from module.logger import pyw_name
 from module.research.preset import DICT_FILTER_PRESET
@@ -72,15 +73,19 @@ def main(ini_name=''):
     # Load translation dictionary
     dic_gui_to_ini = dic_true_eng_to_eng  # GUI translation dictionary here.
     dic_gui_to_ini.update(dic_event[server.server])
+    dic_gui_to_ini.update(dic_archives[server.server])
     dic_ini_to_gui = {v: k for k, v in dic_gui_to_ini.items()}
     # Event list
     event_folder = [f for f in dic_event[server.server].values() if f.startswith('event_')]
-    event_latest = sorted([f for f in event_folder], reverse=True)[0]
+    event_latest = event_folder[-1]
     event_folder = [dic_ini_to_gui.get(f, f) for f in event_folder][::-1]
     event_latest = dic_ini_to_gui.get(event_latest, event_latest)
+    # Archives list
+    archives_folder = [f for f in dic_archives[server.server].values() if f.startswith('war_archives_')]
+    archives_folder = [dic_ini_to_gui.get(f, f) for f in archives_folder][::-1]
     # Raid list
     raid_folder = [f for f in dic_event[server.server].values() if f.startswith('raid_')]
-    raid_latest = sorted([f for f in raid_folder], reverse=True)[0]
+    raid_latest = raid_folder[-1]
     raid_folder = [dic_ini_to_gui.get(f, f) for f in raid_folder][::-1]
     raid_latest = dic_ini_to_gui.get(raid_latest, raid_latest)
     # Research preset list
@@ -140,7 +145,7 @@ def main(ini_name=''):
     stop.add_argument('--if_get_ship', default=default('--if_get_ship'), choices=['yes', 'no'],
                       help='Will enter in reward loop when\nget a new ship',
                       gooey_options={'label_color': '#4B5F83'})
-    stop.add_argument('--if_map_reach', default=default('--if_map_reach'), choices=['no', 'map_100', 'map_3_star', 'map_green_without_3_star', 'map_green'], help='If already reached, ignore this setting', gooey_options={'label_color': '#4B5F83'})
+    stop.add_argument('--if_map_reach', default=default('--if_map_reach'), choices=['no', 'map_100', 'map_3_star', 'map_green_without_3_star', 'map_green'], help='', gooey_options={'label_color': '#4B5F83'})
     stop.add_argument('--if_trigger_emotion_control', default=default('--if_trigger_emotion_control'), choices=['yes', 'no'], help='Will enter in reward loop when\ntriggered Mood limit', gooey_options={'label_color': '#4B5F83'})
     stop.add_argument('--if_reach_lv120', default=default('--if_reach_lv120'), choices=['yes', 'no'], help='Will enter in reward loop when\na ship of lv119 reached lv120 in combat', gooey_options={'label_color': '#4B5F83'})
     # stop.add_argument('--if_dock_full', default=default('--if_dock_full'), choices=['yes', 'no'])
@@ -209,16 +214,21 @@ def main(ini_name=''):
     # 退役选项
     retire = setting_parser.add_argument_group('Retirement settings', '', gooey_options={'label_color': '#931D03'})
     retire.add_argument('--enable_retirement', default=default('--enable_retirement'), choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
-    retire.add_argument('--retire_method', default=default('--retire_method'), choices=['enhance', 'one_click_retire', 'old_retire'], gooey_options={'label_color': '#4B5F83'})
+    retire.add_argument('--retire_method', default=default('--retire_method'), choices=['enhance', 'one_click_retire', 'old_retire'], help='If choosing enhance, when not having enough enhance material, will use one click retire', gooey_options={'label_color': '#4B5F83'})
     retire.add_argument('--retire_amount', default=default('--retire_amount'), choices=['retire_all', 'retire_10'], gooey_options={'label_color': '#4B5F83'})
     retire.add_argument('--enhance_favourite', default=default('--enhance_favourite'), choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
-    retire.add_argument('--enhance_order_string', default=default('--enhance_order_string'), help='Use example format "cv > bb > ..." may omit a ship type category altogether to skip otherwise leave blank to use default enhance method', gooey_options={'label_color': '#4B5F83'})
+    retire.add_argument('--enhance_order_string', default=default('--enhance_order_string'),
+                        help='Use example format "cv > bb > ..." may omit a ship type category altogether to skip otherwise leave blank to not apply any filter. Using \'?\' will have ALAS select a category at random, may use multiple in same string',
+                        gooey_options={'label_color': '#4B5F83'})
+    retire.add_argument('--enhance_check_per_category', default=default('--enhance_check_per_category'),
+                        help='How many ships at maximum are viewed before moving onto the next category, ships that are \'in battle\' do not count towards this number and are skipped to the next available ship for enhancement',
+                        gooey_options={'label_color': '#4B5F83'})
 
     rarity = retire.add_argument_group('Retirement rarity', 'The ship type selection is not supported yet. Ignore the following options when using one-key retirement', gooey_options={'label_color': '#4B5F83'})
     rarity.add_argument('--retire_n', default=default('--retire_n'), choices=['yes', 'no'], help='N', gooey_options={'label_color': '#4B5F83'})
     rarity.add_argument('--retire_r', default=default('--retire_r'), choices=['yes', 'no'], help='R', gooey_options={'label_color': '#4B5F83'})
-    rarity.add_argument('--retire_sr', default=default('--retire_sr'), choices=['yes', 'no'], help='SR', gooey_options={'label_color': '#4B5F83'})
-    rarity.add_argument('--retire_ssr', default=default('--retire_ssr'), choices=['yes', 'no'], help='SSR', gooey_options={'label_color': '#4B5F83'})
+    # rarity.add_argument('--retire_sr', default=default('--retire_sr'), choices=['yes', 'no'], help='SR', gooey_options={'label_color': '#4B5F83'})
+    # rarity.add_argument('--retire_ssr', default=default('--retire_ssr'), choices=['yes', 'no'], help='SSR', gooey_options={'label_color': '#4B5F83'})
 
     # 掉落记录
     drop = setting_parser.add_argument_group('Drop record', 'Save screenshots of dropped items, which will slow down the click speed when settlement is enabled', gooey_options={'label_color': '#931D03'})
@@ -247,6 +257,7 @@ def main(ini_name=''):
     reward_general.add_argument('--enable_oil_reward', default=default('--enable_oil_reward'), choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
     reward_general.add_argument('--enable_coin_reward', default=default('--enable_coin_reward'), choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
     reward_general.add_argument('--enable_mission_reward', default=default('--enable_mission_reward'), choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    reward_general.add_argument('--enable_data_key_collect', default=default('--enable_data_key_collect'), help='Enable collection of data key in war archives.', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
 
     reward_dorm = reward_parser.add_argument_group('Dorm', '', gooey_options={'label_color': '#931D03'})
     reward_dorm.add_argument('--enable_dorm_reward', default=default('--enable_dorm_reward'), choices=['yes', 'no'], help='Dorm collect coins and loves', gooey_options={'label_color': '#4B5F83'})
@@ -315,11 +326,29 @@ def main(ini_name=''):
     research_output.add_argument('--research_filter_string', default=default('--research_filter_string'),
                                  help='Only if you are using custom preset.', gooey_options={'label_color': '#4B5F83'})
 
-    reward_buy = reward_parser.add_argument_group('Buy', 'If already bought, skip', gooey_options={'label_color': '#931D03'})
-    reward_buy.add_argument('--buy_meowfficer', default=default('--buy_meowfficer'), help='From 0 to 15. If no need, fill 0.', gooey_options={'label_color': '#4B5F83'})
+    reward_meowfficer = reward_parser.add_argument_group('Meowfficer', 'If already bought, skip', gooey_options={'label_color': '#931D03'})
+    reward_meowfficer.add_argument('--buy_meowfficer', default=default('--buy_meowfficer'), help='From 0 to 15. If no need, fill 0.', gooey_options={'label_color': '#4B5F83'})
+    reward_meowfficer.add_argument('--enable_train_meowfficer', default=default('--enable_train_meowfficer'),
+                                   help='Enable collection of trained meowfficer and queue all slots for training on Sunday.',
+                                   choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
 
-    reward_data_key = reward_parser.add_argument_group('Data Key', 'If already collected, skip', gooey_options={'label_color': '#931D03'})
-    reward_data_key.add_argument('--enable_data_key_collect', default=default('--enable_data_key_collect'), help='Enable collection of data key in war archives.', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild = reward_parser.add_argument_group('Guild', 'Check Guild Logistics and Operations. Running for every reward loop.', gooey_options={'label_color': '#931D03'})
+    reward_guild.add_argument('--enable_guild_logistics', default=default('--enable_guild_logistics'), help='Enable logistics actions if applicable.', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--enable_guild_operations', default=default('--enable_guild_operations'), help='Enable operations actions if applicable.', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--guild_interval', default=default('--guild_interval'),
+                             help='How many minutes to trigger checking. Recommend to set a time range, such as "10, 40"', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_items = reward_guild.add_argument_group('Logistics item input', 'Available items: t1, t2, t3, oxycola, coolant, coins, oil, and merit. Omitting an item will skip it. Less error-prone with many specified', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_items.add_argument('--guild_logistics_item_order_string', default=default('--guild_logistics_item_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates = reward_guild.add_argument_group('Logistics plate input', 'Available plates: torpedo, antiair, plane, gun, and general. Omitting a plate will skip it. Less error-prone with many specified', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--guild_logistics_plate_t1_order_string', default=default('--guild_logistics_plate_t1_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--guild_logistics_plate_t2_order_string', default=default('--guild_logistics_plate_t2_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
+    reward_guild_logistics_plates.add_argument('--guild_logistics_plate_t3_order_string', default=default('--guild_logistics_plate_t3_order_string'),
+                        gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss = reward_guild.add_argument_group('Operations guild raid boss input', '', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_auto', default=default('--enable_guild_operations_boss_auto'), help='Enable auto-battle of guild raid boss.', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
 
     # ==========emulator==========
     emulator_parser = subs.add_parser('emulator')
@@ -412,9 +441,9 @@ def main(ini_name=''):
     # 演习设置
     exercise = daily_parser.add_argument_group('Exercise settings', '', gooey_options={'label_color': '#931D03'})
     exercise.add_argument('--exercise_choose_mode', default=default('--exercise_choose_mode'),
-                          choices=['max_exp', 'easiest', 'easiest_else_exp'], help='', gooey_options={'label_color': '#4B5F83'})
+                          choices=['max_exp', 'easiest', 'leftmost', 'easiest_else_exp'], help='', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--exercise_preserve', default=default('--exercise_preserve'),
-                          help='Only 0 are temporarily reserved', gooey_options={'label_color': '#4B5F83'})
+                          help='Such as 1, which means run until 1/10', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--exercise_try', default=default('--exercise_try'), help='The number of attempts by each opponent', gooey_options={'label_color': '#4B5F83'})
     exercise.add_argument('--exercise_hp_threshold', default=default('--exercise_hp_threshold'),
                           help='HHP <Retreat at Threshold', gooey_options={'label_color': '#4B5F83'})
@@ -491,6 +520,13 @@ def main(ini_name=''):
     sos.add_argument('--sos_fleets_chapter_9', default=default('--sos_fleets_chapter_9'), gooey_options={'label_color': '#4B5F83'})
     sos.add_argument('--sos_fleets_chapter_10', default=default('--sos_fleets_chapter_10'), gooey_options={'label_color': '#4B5F83'})
 
+    # ==========war_archives==========
+    war_archives_parser = subs.add_parser('war_archives')
+    war_archives = war_archives_parser.add_argument_group(
+        'war archives settings', 'Type a stage and select a corresponding event for that stage', gooey_options={'label_color': '#931D03'})
+    war_archives.add_argument('--war_archives_stage', default=default('--war_archives_stage'), help='Type stage name, not case sensitive, E.g D3, SP3, HT6', gooey_options={'label_color': '#4B5F83'})
+    war_archives.add_argument('--war_archives_name', default=default('--war_archives_name'), choices=archives_folder, help='There a dropdown menu with many options', gooey_options={'label_color': '#4B5F83'})
+
     # ==========Raid==========
     raid_parser = subs.add_parser('raid')
     raid = raid_parser.add_argument_group('Choose a raid', '', gooey_options={'label_color': '#931D03'})
@@ -533,6 +569,11 @@ def main(ini_name=''):
                         choices=['0', '1', '2', '10'], help='How many battles will be fought after there is no large scale enemy', gooey_options={'label_color': '#4B5F83'})
     c_12_4.add_argument('--ammo_pick_up_124', default=default('--ammo_pick_up_124'),
                         choices=['2', '3', '4', '5'], help='How many battles before pick ammo, the recommended is 3', gooey_options={'label_color': '#4B5F83'})
+
+    # ==========OS semi auto==========
+    os_semi_parser = subs.add_parser('os_semi_auto')
+    os_semi = os_semi_parser.add_argument_group('os_semi_auto', 'Start and finish combat automatically', gooey_options={'label_color': '#931D03'})
+    os_semi.add_argument('--enable_os_semi_story_skip', default=default('--enable_os_semi_story_skip'), choices=['yes', 'no'], help='Note that this will automatically choose the options in map events', gooey_options={'label_color': '#4B5F83'})
 
     args = parser.parse_args()
 

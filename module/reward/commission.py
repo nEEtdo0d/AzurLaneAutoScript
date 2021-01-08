@@ -2,14 +2,11 @@ import re
 from datetime import datetime, timedelta
 
 import Levenshtein
-import cv2
-import numpy as np
 from scipy import signal
 
 from module.base.decorator import Config
 from module.base.timer import Timer
-from module.base.utils import area_offset, get_color, random_rectangle_vector
-from module.base.utils import color_similar_1d, random_rectangle_point
+from module.base.utils import *
 from module.exception import GameStuckError
 from module.handler.info_handler import InfoHandler
 from module.logger import logger
@@ -33,7 +30,7 @@ dictionary_cn = {
     'urgent_box': ['装备', '物资'],
     'urgent_cube': ['解救', '敌袭'],
     'urgent_gem': ['要员', '度假', '巡视'],
-    'urgent_ship': ['观舰']
+    'urgent_ship': ['观舰'],
 }
 dictionary_en = {
     'daily_comm': ['DAILY RESOURCE EXTRACTION', 'AWAKENING TACTICAL RESEARCH'],
@@ -49,7 +46,7 @@ dictionary_en = {
     'urgent_cube': ['ENEMY ATTACK', 'MERCHANT RESCUE'],
     'urgent_gem': ['VIP', 'HOLIDAY ESCORT', 'PATROL ESCORT'],
     'urgent_ship': ['LAUNCH'],
-    'major_comm': ['SELF TRAINING', 'DEFENSE EXERCISE', 'RESEARCH MISSION', 'TOOL PREP', 'TACTICAL CLASS', 'CARGO TRANSPORT']
+    'major_comm': ['SELF TRAINING', 'DEFENSE EXERCISE', 'RESEARCH MISSION', 'TOOL PREP', 'TACTICAL CLASS', 'CARGO TRANSPORT'],
 }
 dictionary_jp = {
     'major_comm': ['初級自主訓練', '中級自主訓練', '上級自主訓練', '初級対抗演習', '中級対抗演習', '上級対抗演習', '初級科学研究', '中級科学研究', '上級科学研究', '初級資材整理', '中級資材整理', '上級資材整理', '初級戦術課程', '中級戦術課程', '上級戦術課程', '初級貨物輸送', '中級貨物輸送', '上級貨物輸送'],
@@ -65,7 +62,7 @@ dictionary_jp = {
     'urgent_box': ['装備輸送', '物資交換', '装備試験'],
     'urgent_cube': ['船団救出', '敵襲'],
     'urgent_gem': ['要人護衛', '休暇護衛'],
-    'urgent_ship': ['小型観艦式', '連合艦隊観艦式', '多国連合観艦式']
+    'urgent_ship': ['小型観艦式', '連合艦隊観艦式', '多国連合観艦式'],
 }
 COMMISSION_SWITCH = Switch('Commission_switch', is_selector=True)
 COMMISSION_SWITCH.add_status('daily', COMMISSION_DAILY)
@@ -125,7 +122,10 @@ class Commission:
             1: 'running',
             2: 'pending'
         }
-        self.status = dic[int(np.argmax(get_color(self.image, area)))]
+        color = get_color(self.image, area)
+        # if self.genre == 'doa_daily':
+        #     color -= [50, 30, 20]
+        self.status = dic[int(np.argmax(color))]
 
     @Config.when(SERVER='jp')
     def commission_parse(self):
@@ -162,7 +162,10 @@ class Commission:
             1: 'running',
             2: 'pending'
         }
-        self.status = dic[int(np.argmax(get_color(self.image, area)))]
+        color = get_color(self.image, area)
+        # if self.genre == 'doa_daily':
+        #     color -= [50, 30, 20]
+        self.status = dic[int(np.argmax(color))]
 
     @Config.when(SERVER='cn')
     def commission_parse(self):
@@ -199,7 +202,10 @@ class Commission:
             1: 'running',
             2: 'pending'
         }
-        self.status = dic[int(np.argmax(get_color(self.image, area)))]
+        color = get_color(self.image, area)
+        # if self.genre == 'doa_daily':
+        #     color -= [50, 30, 20]
+        self.status = dic[int(np.argmax(color))]
 
     def __str__(self):
         if self.valid:
@@ -261,6 +267,8 @@ class Commission:
             str: Commission genre, such as 'urgent_gem'.
         """
         # string = string.replace(' ', '').replace('-', '')
+        # if self.is_doa_commission():
+        #     return 'doa_daily'
         for key, value in dictionary_en.items():
             for keyword in value:
                 if keyword in string:
@@ -279,6 +287,8 @@ class Commission:
         Returns:
             str: Commission genre, such as 'urgent_gem'.
         """
+        # if self.is_doa_commission():
+        #     return 'doa_daily'
         min_key = ''
         min_distance = 100
         string = re.sub(r'[\x00-\x7F]', '', string)
@@ -304,6 +314,8 @@ class Commission:
         Returns:
             str: Commission genre, such as 'urgent_gem'.
         """
+        # if self.is_doa_commission():
+        #     return 'doa_daily'
         for key, value in dictionary_cn.items():
             for keyword in value:
                 if keyword in string:
@@ -312,6 +324,16 @@ class Commission:
         logger.warning(f'Name with unknown genre: {string}')
         self.valid = False
         return ''
+
+    # def is_doa_commission(self):
+    #     """
+    #     Event commission in Vacation Lane, with pink area on the left.
+    #
+    #     Returns:
+    #         bool:
+    #     """
+    #     area = area_offset((5, 5, 30, 30), self.area[0:2])
+    #     return color_similar(color1=get_color(self.image, area), color2=(239, 166, 231))
 
 
 class CommissionGroup:
@@ -389,6 +411,7 @@ class RewardCommission(UI, InfoHandler):
     urgent: CommissionGroup
     daily_choose: CommissionGroup
     urgent_choose: CommissionGroup
+    max_commission = 4
 
     def _commission_choose(self, daily, urgent, priority, time_limit=None):
         """
@@ -403,10 +426,14 @@ class RewardCommission(UI, InfoHandler):
         """
         # Count Commission
         commission = daily.commission + urgent.commission
+        self.max_commission = 4
+        # for comm in commission:
+        #     if comm.genre == 'doa_daily':
+        #         self.max_commission = 5
         running_count = int(
             np.sum([1 for c in commission if c.status == 'running']))
         logger.attr('Running', running_count)
-        if running_count >= 4:
+        if running_count >= self.max_commission:
             return [], []
 
         # Calculate priority
@@ -435,9 +462,8 @@ class RewardCommission(UI, InfoHandler):
             commission = [
                 comm for comm in commission if datetime.now() + comm.duration <= time_limit]
 
-        commission = commission[:4 - running_count]
-        daily_choose, urgent_choose = CommissionGroup(
-            self.config), CommissionGroup(self.config)
+        commission = commission[:self.max_commission - running_count]
+        daily_choose, urgent_choose = CommissionGroup(self.config), CommissionGroup(self.config)
         for comm in commission:
             if comm in daily:
                 daily_choose.commission.append(comm)

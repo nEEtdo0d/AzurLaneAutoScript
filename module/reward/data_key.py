@@ -1,10 +1,11 @@
-from module.logger import logger
 from module.base.timer import Timer
+from module.combat.assets import GET_ITEMS_1
+from module.logger import logger
 from module.ocr.ocr import DigitCounter
-from module.handler.assets import GET_ITEMS_1
-from module.ui.assets import WAR_ARCHIVES_CHECK
 from module.reward.assets import OCR_DATA_KEY, DATA_KEY_COLLECT, DATA_KEY_COLLECTED
+from module.ui.assets import WAR_ARCHIVES_CHECK
 from module.ui.ui import UI, page_archives
+from module.war_archives.assets import WAR_ARCHIVES_EX_ON
 
 DATA_KEY = DigitCounter(OCR_DATA_KEY, letter=(255, 247, 247), threshold=64)
 RECORD_OPTION = ('RewardRecord', 'data_key')
@@ -27,7 +28,10 @@ class RewardDataKey(UI):
             else:
                 self.device.screenshot()
 
-            if self.appear_then_click(GET_ITEMS_1, genre='get_items', offset=5):
+            if self.appear(GET_ITEMS_1, offset=5, interval=3):
+                # Clicking any blank area in page_archives will exit to page_campaign.
+                # Click WAR_ARCHIVES_EX to avoid this, if double clicking GET_ITEMS.
+                self.device.click(WAR_ARCHIVES_EX_ON)
                 confirm_timer.reset()
                 continue
             if self.handle_popup_confirm('DATA_KEY_LIMIT'):
@@ -52,7 +56,7 @@ class RewardDataKey(UI):
 
         Pages:
             in: page_any
-            out: page_archives
+            out: page_main
         """
         self.ui_ensure(page_archives)
 
@@ -60,12 +64,14 @@ class RewardDataKey(UI):
             self.device.screenshot()
             if self.appear(DATA_KEY_COLLECTED):
                 logger.info('Data key has been collected')
+                self.ui_goto_main()
                 return True
 
             current, remain, total = DATA_KEY.ocr(self.device.image)
             logger.info(f'Inventory: {current} / {total}, Remain: {remain}')
             if remain <= 0:
                 logger.info('No more room for additional data key')
+                self.ui_goto_main()
                 return True
 
             self.device.click(DATA_KEY_COLLECT)
@@ -73,6 +79,7 @@ class RewardDataKey(UI):
             continue
 
         logger.warning('Too many tries on data key collection, skip and try again on next reward loop')
+        self.ui_goto_main()
         return False
 
     def handle_data_key(self):
@@ -82,7 +89,7 @@ class RewardDataKey(UI):
 
         Pages:
             in: page_any
-            out: page_archives
+            out: page_main
         """
         if not self.config.ENABLE_DATA_KEY_COLLECT:
             return False

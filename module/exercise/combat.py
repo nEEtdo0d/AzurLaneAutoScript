@@ -60,9 +60,11 @@ class ExerciseCombat(HpDaemon, OpponentChoose, ExerciseEquipment):
                     continue
             if self.appear_then_click(GET_ITEMS_1):
                 continue
-            if self.appear_then_click(EXP_INFO_S):
+            if self.appear(EXP_INFO_S):
+                self.device.click(CLICK_SAFE_AREA)
                 continue
-            if self.appear_then_click(EXP_INFO_D):
+            if self.appear(EXP_INFO_D):
+                self.device.click(CLICK_SAFE_AREA)
                 continue
             # Last D rank screen
             if self.appear_then_click(OPTS_INFO_D, offset=(30, 30)):
@@ -80,7 +82,7 @@ class ExerciseCombat(HpDaemon, OpponentChoose, ExerciseEquipment):
                         show_hp_timer.reset()
                         self._show_hp()
 
-            if self.appear_then_click(QUIT_CONFIRM, offset=True, interval=5):
+            if self.appear_then_click(QUIT_CONFIRM, offset=(20, 20), interval=5):
                 success = False
                 end = True
                 continue

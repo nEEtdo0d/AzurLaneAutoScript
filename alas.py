@@ -20,6 +20,7 @@ class AzurLaneAutoScript:
         self.device = None
 
     def run(self, command):
+        logger.attr('Command', command)
         self.config.start_time = datetime.now()
         self.device = Device(config=self.config)
         while 1:
@@ -31,6 +32,12 @@ class AzurLaneAutoScript:
                 az = LoginHandler(self.config, device=self.device)
                 az.app_restart()
                 az.ensure_no_unfinished_campaign()
+                continue
+            except GameTooManyClickError as e:
+                logger.warning(e)
+                self.save_error_log()
+                az = LoginHandler(self.config, device=self.device)
+                az.handle_game_stuck()
                 continue
             except GameStuckError as e:
                 logger.warning(e)
@@ -150,6 +157,15 @@ class AzurLaneAutoScript:
         az.run()
         self.reward_when_finished()
 
+    def war_archives(self):
+        """
+        Method to War Archives maps.
+        """
+        from module.war_archives.war_archives import CampaignWarArchives
+        az = CampaignWarArchives(self.config, device=self.device)
+        az.run(self.config.WAR_ARCHIVES_STAGE, folder=self.config.WAR_ARCHIVES_NAME)
+        self.reward_when_finished()
+
     def raid(self):
         from module.raid.run import RaidRun
         az = RaidRun(self.config, device=self.device)
@@ -196,6 +212,12 @@ class AzurLaneAutoScript:
         az = Retirement(self.config, device=self.device)
         az.device.screenshot()
         az.retire_ships(amount=2000)
+
+    def os_semi_auto(self):
+        from module.daemon.os_daemon import AzurLaneDaemon
+        az = AzurLaneDaemon(self.config, device=self.device)
+        az.daemon()
+
 
 # alas = AzurLaneAutoScript()
 # alas.reward()

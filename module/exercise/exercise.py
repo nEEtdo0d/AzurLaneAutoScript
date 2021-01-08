@@ -27,6 +27,16 @@ class Exercise(ExerciseCombat):
 
         self.ensure_no_info_bar(timeout=3)
 
+    def _opponent_fleet_check_all(self):
+        if self.config.EXERCISE_CHOOSE_MODE != 'leftmost':
+            super()._opponent_fleet_check_all()
+
+    def _opponent_sort(self):
+        if self.config.EXERCISE_CHOOSE_MODE != 'leftmost':
+            return super()._opponent_sort()
+        else:
+            return [0, 1, 2 ,3]
+
     def _exercise_once(self):
         """Execute exercise once.
 
@@ -103,7 +113,7 @@ class Exercise(ExerciseCombat):
         while 1:
             self.device.screenshot()
             self.remain = OCR_EXERCISE_REMAIN.ocr(self.device.image)
-            if self.remain == 0:
+            if self.remain <= self.config.EXERCISE_PRESERVE:
                 break
 
             logger.hr('Remain: %s' % self.remain)
@@ -122,7 +132,7 @@ class Exercise(ExerciseCombat):
 
     def record_save(self):
         self.config.config.set(*RECORD_COUNT, str(self.opponent_change_count))
-        if not self.remain:
+        if self.remain <= self.config.EXERCISE_PRESERVE:
             return self.config.record_save(option=RECORD_OPTION)
         else:
             self.config.save()

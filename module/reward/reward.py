@@ -13,11 +13,12 @@ from module.reward.dorm import RewardDorm
 from module.reward.meowfficer import RewardMeowfficer
 from module.reward.tactical_class import RewardTacticalClass
 from module.reward.data_key import RewardDataKey
+from module.guild.guild_reward import RewardGuild
 from module.ui.page import *
 from module.update import Update
 
 
-class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, RewardMeowfficer, RewardDataKey, LoginHandler, Update):
+class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, RewardMeowfficer, RewardDataKey, RewardGuild, LoginHandler, Update):
     @cached_property
     def reward_interval(self):
         """
@@ -71,6 +72,7 @@ class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, 
         self.handle_dorm()
         self.handle_meowfficer()
         self.handle_data_key()
+        self.handle_guild()
         self._reward_mission()
 
         self.config.REWARD_LAST_TIME = datetime.now()
@@ -292,7 +294,9 @@ class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, 
             FLEET_1_AUTO_MODE='combat_auto',
             FLEET_2_AUTO_MODE='combat_auto',
             FLEET_3_AUTO_MODE='combat_auto',
+            ENABLE_FAST_FORWARD=True,
             ENABLE_MAP_FLEET_LOCK=True,
+            STOP_IF_MAP_REACH='no',
         )
 
     def reward_recover_daily_reward_settings(self):

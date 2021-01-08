@@ -4,6 +4,22 @@ from module.handler.assets import *
 from module.logger import logger
 
 
+def info_letter_preprocess(image):
+    """
+    Args:
+        image (np.ndarray):
+
+    Returns:
+        np.ndarray
+    """
+    image = image.astype(float)
+    image = (image - 64) / 0.75
+    image[image > 255] = 255
+    image[image < 0] = 0
+    image = image.astype('uint8')
+    return image
+
+
 class InfoHandler(ModuleBase):
     """
     Class to handle all kinds of message.
@@ -11,6 +27,7 @@ class InfoHandler(ModuleBase):
     """
     Info bar
     """
+
     def info_bar_count(self):
         if self.appear(INFO_BAR_3):
             return 3
@@ -89,6 +106,19 @@ class InfoHandler(ModuleBase):
 
         return self.handle_popup_confirm('IGNORE_LOW_EMOTION')
 
+    def handle_use_data_key(self):
+        if not self.config.USE_DATA_KEY:
+            return False
+
+        if not self.appear(POPUP_CONFIRM, offset=self._popup_offset) \
+                and not self.appear(POPUP_CANCEL, offset=self._popup_offset, interval=2):
+            return False
+
+        if self.appear(USE_DATA_KEY, offset=(20, 20)):
+            return self.handle_popup_confirm('USE_DATA_KEY')
+
+        return False
+
     """
     Story
     """
@@ -102,16 +132,40 @@ class InfoHandler(ModuleBase):
                 self.interval_reset(STORY_SKIP)
                 self.interval_reset(STORY_LETTERS_ONLY)
                 return True
-        if self.appear_then_click(STORY_SKIP, offset=True, interval=2):
-            self.story_popup_timout.reset()
-            return True
         if self.appear(STORY_LETTER_BLACK) and self.appear_then_click(STORY_LETTERS_ONLY, offset=True, interval=2):
             self.story_popup_timout.reset()
             return True
         if self.appear_then_click(STORY_CHOOSE, offset=True, interval=2):
             self.story_popup_timout.reset()
+            self.interval_reset(STORY_SKIP)
+            self.interval_reset(STORY_LETTERS_ONLY)
             return True
         if self.appear_then_click(STORY_CHOOSE_2, offset=True, interval=2):
+            self.story_popup_timout.reset()
+            self.interval_reset(STORY_SKIP)
+            self.interval_reset(STORY_LETTERS_ONLY)
+            return True
+        if self.appear_then_click(STORY_CHOOSE_LONG_3, offset=True, interval=2):
+            self.story_popup_timout.reset()
+            self.interval_reset(STORY_SKIP)
+            self.interval_reset(STORY_LETTERS_ONLY)
+            return True
+        if self.appear_then_click(STORY_CHOOSE_LONG, offset=True, interval=2):
+            self.story_popup_timout.reset()
+            self.interval_reset(STORY_SKIP)
+            self.interval_reset(STORY_LETTERS_ONLY)
+            return True
+        if self.appear_then_click(STORY_CHOOSE_LONG_2, offset=True, interval=2):
+            self.story_popup_timout.reset()
+            self.interval_reset(STORY_SKIP)
+            self.interval_reset(STORY_LETTERS_ONLY)
+            return True
+        if self.appear_then_click(STORY_CHOOSE_SHORT_2, offset=True, interval=2):
+            self.story_popup_timout.reset()
+            self.interval_reset(STORY_SKIP)
+            self.interval_reset(STORY_LETTERS_ONLY)
+            return True
+        if self.appear_then_click(STORY_SKIP, offset=True, interval=2):
             self.story_popup_timout.reset()
             return True
         if self.appear_then_click(GAME_TIPS, offset=(20, 20), interval=2):

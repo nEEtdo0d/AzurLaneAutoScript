@@ -1,3 +1,4 @@
+from module.exception import MapEnemyMoved
 from module.logger import logger
 from module.map.fleet import Fleet
 from module.map.map_grids import SelectedGrids, RoadGrids
@@ -58,6 +59,34 @@ class Map(Fleet):
             self.ammo_count -= recover
             self.fleet_ammo += recover
 
+    def clear_mechanism(self, grids=None):
+        """
+        Args:
+            grids (SelectedGrids): Grids that triggers mechanism. If None, select all mechanism triggers.
+
+        Returns:
+            bool: False, because didn't clear any enemy.
+        """
+        if not self.config.MAP_HAS_LAND_BASED:
+            return False
+
+        if not grids:
+            grids = self.map.select(is_mechanism_trigger=True, is_mechanism_block=False)
+        else:
+            grids = grids.select(is_mechanism_trigger=True, is_mechanism_block=False)
+        grids = self.select_grids(grids, is_accessible=True, sort=('weight', 'cost'))
+
+        for grid in grids:
+            logger.info(f'Clear mechanism: {grid}')
+            self.goto(grid)
+            self.map.show_cost()
+            logger.info(f'Mechanism trigger release: {grid.mechanism_trigger}')
+            logger.info(f'Mechanism block release: {grid.mechanism_block}')
+            raise MapEnemyMoved
+
+        logger.info('Mechanism all cleared')
+        return False
+
     @staticmethod
     def select_grids(grids, nearby=False, is_accessible=True, scale=(), genre=(), strongest=False, weakest=False,
                      sort=('weight', 'cost'), ignore=None):
@@ -92,7 +121,9 @@ class Map(Fleet):
         if len(genre):
             enemy = SelectedGrids([])
             for enemy_genre in genre:
-                enemy = enemy.add(grids.select(enemy_genre=enemy_genre.capitalize()))
+                # enemy_genre should be camel case
+                enemy_genre = enemy_genre[0].upper() + enemy_genre[1:] if enemy_genre[0].islower() else enemy_genre
+                enemy = enemy.add(grids.select(enemy_genre=enemy_genre))
                 if isinstance(genre, list) and enemy:
                     break
             grids = enemy
@@ -272,7 +303,7 @@ class Map(Fleet):
             logger.hr('Clear BOSS')
             grids = grids.sort('weight', 'cost')
             logger.info('Grids: %s' % str(grids))
-            self.clear_chosen_enemy(grids[0])
+            self.clear_chosen_enemy(grids[0], expected='boss')
 
         logger.warning('BOSS not detected, trying all boss spawn point.')
         return self.clear_potential_boss()

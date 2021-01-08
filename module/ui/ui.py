@@ -10,11 +10,17 @@ from module.ui.page import *
 
 
 class UI(InfoHandler):
-    ui_pages = [page_main, page_campaign, page_fleet, page_exercise, page_daily, page_event, page_sp, page_mission,
-                page_raid, page_reward, page_reshmenu, page_research, page_dormmenu, page_dorm, page_meowfficer, page_archives]
-    ui_pages_all = [page_main, page_campaign, page_fleet, page_exercise, page_daily, page_event, page_sp, page_mission,
+    # Pages that Alas supported.
+    ui_pages = [page_main, page_campaign_menu, page_campaign, page_fleet,
+                page_exercise, page_daily, page_event, page_sp, page_mission,
+                page_raid, page_reward, page_reshmenu, page_research, page_dormmenu, page_dorm, page_meowfficer,
+                page_archives, page_guild]
+    # All pages defined.
+    ui_pages_all = [page_main, page_campaign_menu, page_campaign, page_fleet,
+                    page_exercise, page_daily, page_event, page_sp, page_mission,
                     page_raid, page_commission, page_event_list, page_tactical, page_reward, page_unknown,
-                    page_reshmenu, page_research, page_dormmenu, page_dorm, page_meowfficer, page_archives]
+                    page_reshmenu, page_research, page_dormmenu, page_dorm, page_meowfficer, page_archives,
+                    page_guild]
     ui_current: Page
 
     def ui_page_appear(self, page):
@@ -94,6 +100,9 @@ class UI(InfoHandler):
             logger.warning(f'Unrecognized ui_current, using previous: {self.ui_current}')
         else:
             logger.info('Unable to goto page_main')
+            logger.attr('DEVICE_SCREENSHOT_METHOD', self.config.DEVICE_SCREENSHOT_METHOD)
+            logger.attr('DEVICE_CONTROL_METHOD', self.config.DEVICE_CONTROL_METHOD)
+            logger.attr('SERVER', self.config.SERVER)
             logger.warning('Starting from current page is not supported')
             logger.warning(f'Supported page: {[str(page) for page in self.ui_pages]}')
             logger.warning(f'Supported page: Any page with a "HOME" button on the upper-right')
@@ -297,11 +306,19 @@ class UI(InfoHandler):
         return False
 
     def ui_additional_page_dorm(self):
-        if self.appear_then_click(DORM_INFO, offset=(30, 30), interval=1):
+        if self.appear_then_click(DORM_INFO, offset=(30, 30), interval=5):
             return True
-        if self.appear_then_click(DORM_FEED_CANCEL, offset=(30, 30), interval=1):
+        if self.appear_then_click(DORM_FEED_CANCEL, offset=(30, 30), interval=5):
             return True
-        if self.appear_then_click(DORM_TROPHY_CONFIRM, offset=(30, 30), interval=1):
-            return  True
+        if self.appear_then_click(DORM_TROPHY_CONFIRM, offset=(30, 30), interval=5):
+            return True
 
         return False
+
+    # def ui_additional_page_commission(self):
+    #     # Event commission in Vacation Lane.
+    #     if self.appear(GAME_TIPS, offset=(20, 20), interval=1):
+    #         self.device.click(COMMISSION_DAILY)
+    #         return True
+    #
+    #     return False

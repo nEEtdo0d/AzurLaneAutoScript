@@ -17,8 +17,11 @@ class CampaignMap:
         self._weight_data = ''
         self._wall_data = ''
         self._portal_data = []
+        self._land_based_data = []
         self._spawn_data = []
         self._spawn_data_stack = []
+        self._spawn_data_loop = []
+        self._spawn_data_use_loop = False
         self._camera_data = []
         self._camera_data_spawn_point = []
         self._map_covered = SelectedGrids([])
@@ -94,7 +97,7 @@ class CampaignMap:
             use_loop (bool): If at clearing mode.
                              clearing mode (Correct name) == fast forward (in old Alas) == loop (in lua files)
         """
-        has_loop = len(self.map_data_loop)
+        has_loop = bool(len(self.map_data_loop))
         logger.info(f'Load map_data, has_loop={has_loop}, use_loop={use_loop}')
         if has_loop and use_loop:
             self._load_map_data(self.map_data_loop)
@@ -131,6 +134,41 @@ class CampaignMap:
             node1, node2 = location_ensure(nodes[0]), location_ensure(nodes[1])
             self._portal_data.append((node1, node2))
             self[node1].is_portal = True
+
+    @property
+    def land_based_data(self):
+        return self._land_based_data
+
+    @land_based_data.setter
+    def land_based_data(self, data):
+        self._land_based_data = data
+
+    def _load_land_base_data(self, data):
+        """
+        land_based_data need to be set after map_data.
+
+        Args:
+            data (list[list[str]]): Such as [['H7', 'up'], ['D5', 'left'], ['G3', 'down'], ['C2', 'right']]
+        """
+        rotation_dict = {
+            'up': [(0, -1), (0, -2), (0, -3)],
+            'down': [(0, 1), (0, 2), (0, 3)],
+            'left': [(-1, 0), (-2, 0), (-3, 0)],
+            'right': [(1, 0), (2, 0), (3, 0)],
+        }
+        self._land_based_data = data
+        for land_based in data:
+            grid, rotation = land_based
+            grid = self.grids[location_ensure(grid)]
+            trigger = self.grid_covered(grid=grid, location=[(0, -1), (0, 1), (-1, 0), (1, 0)]).select(is_land=False)
+            block = self.grid_covered(grid=grid, location=rotation_dict[rotation]).select(is_land=False)
+            trigger.set(is_mechanism_trigger=True, mechanism_trigger=trigger, mechanism_block=block)
+            block.set(is_mechanism_block=True)
+
+    def load_mechanism(self, land_based=False):
+        logger.info(f'Load mechanism, land_base={land_based}')
+        if land_based:
+            self._load_land_base_data(self.land_based_data)
 
     def grid_connection_initial(self, wall=False, portal=False):
         """
@@ -267,11 +305,42 @@ class CampaignMap:
 
     @property
     def spawn_data(self):
-        return self._spawn_data
+        """
+        Returns:
+            [list[dict]]:
+        """
+        if self._spawn_data_use_loop:
+            return self._spawn_data_loop
+        else:
+            return self._spawn_data
 
     @spawn_data.setter
     def spawn_data(self, data_list):
         self._spawn_data = data_list
+
+    @property
+    def spawn_data_loop(self):
+        return self._spawn_data_loop
+
+    @spawn_data_loop.setter
+    def spawn_data_loop(self, data_list):
+        self._spawn_data_loop = data_list
+
+    @property
+    def spawn_data_stack(self):
+        return self._spawn_data_stack
+
+    def load_spawn_data(self, use_loop=False):
+        has_loop = bool(len(self._spawn_data_loop))
+        logger.info(f'Load spawn_data, has_loop={has_loop}, use_loop={use_loop}')
+        if has_loop and use_loop:
+            self._spawn_data_use_loop = True
+            self._load_spawn_data(self._spawn_data_loop)
+        else:
+            self._spawn_data_use_loop = False
+            self._load_spawn_data(self._spawn_data)
+
+    def _load_spawn_data(self, data_list):
         spawn = {'battle': 0, 'enemy': 0, 'mystery': 0, 'siren': 0, 'boss': 0}
         for data in data_list:
             spawn['battle'] = data['battle']
@@ -280,10 +349,6 @@ class CampaignMap:
             spawn['siren'] += data.get('siren', 0)
             spawn['boss'] += data.get('boss', 0)
             self._spawn_data_stack.append(spawn.copy())
-
-    @property
-    def spawn_data_stack(self):
-        return self._spawn_data_stack
 
     @property
     def weight_data(self):
@@ -358,7 +423,7 @@ class CampaignMap:
             for grid in visited:
                 for arr in self.grid_connection[grid.location]:
                     arr = self[arr]
-                    if arr.is_land:
+                    if arr.is_land or arr.is_mechanism_block:
                         continue
                     cost = ambush_cost if arr.may_ambush else 1
                     cost += grid.cost

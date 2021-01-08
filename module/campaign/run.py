@@ -5,7 +5,7 @@ from datetime import datetime
 
 from module.campaign.assets import *
 from module.campaign.campaign_base import CampaignBase
-from module.config.config import AzurLaneConfig
+from module.config.config import AzurLaneConfig, ConfigBackup
 from module.exception import ScriptEnd
 from module.logger import logger
 from module.ocr.ocr import Digit
@@ -40,7 +40,7 @@ class CampaignRun(Reward):
 
         if folder.startswith('campaign_'):
             self.stage = '-'.join(name.split('_')[1:3])
-        if folder.startswith('event'):
+        if folder.startswith('event') or folder.startswith('war_archives'):
             self.stage = name
 
         try:
@@ -63,15 +63,24 @@ class CampaignRun(Reward):
         return True
 
     def campaign_name_set(self, name):
+        """
+        Args:
+            name (str): Campaign name used in drop screenshot.
+
+        Returns:
+            list[ConfigBackup]:
+        """
         if not self.campaign.config.ENABLE_SAVE_GET_ITEMS \
                 or not len(self.campaign.config.SCREEN_SHOT_SAVE_FOLDER_BASE.strip()):
-            return False
+            return []
         # Create folder to save drop screenshot
         folder = self.campaign.config.SCREEN_SHOT_SAVE_FOLDER_BASE + '/' + name
         if not os.path.exists(folder):
             os.mkdir(folder)
-        self.campaign.config.SCREEN_SHOT_SAVE_FOLDER = folder
-        self.config.SCREEN_SHOT_SAVE_FOLDER = folder
+
+        backup1 = self.campaign.config.cover(SCREEN_SHOT_SAVE_FOLDER=folder)
+        backup2 = self.config.cover(SCREEN_SHOT_SAVE_FOLDER=folder)
+        return [backup1, backup2]
 
     def triggered_stop_condition(self):
         """
@@ -110,8 +119,6 @@ class CampaignRun(Reward):
             logger.hr('Triggered get ship')
             return True
 
-
-
         return False
 
     def _triggered_app_restart(self):
@@ -135,6 +142,25 @@ class CampaignRun(Reward):
 
         return False
 
+    @staticmethod
+    def handle_stage_name(name, folder):
+        """
+        Handle wrong stage names.
+        In some events, the name of SP may be different, such as 'vsp', muse sp.
+        To call them easier, their map files should named 'sp.py'.
+
+        Args:
+            name (str): Name of .py file.
+            folder (str): Name of the file folder under campaign.
+
+        Returns:
+            str, str: name, folder
+        """
+        if folder == 'event_20201126_cn' and name == 'vsp':
+            name = 'sp'
+
+        return name, folder
+
     def run(self, name, folder='campaign_main', total=0):
         """
         Args:
@@ -142,6 +168,7 @@ class CampaignRun(Reward):
             folder (str): Name of the file folder under campaign.
             total (int):
         """
+        name, folder = self.handle_stage_name(name, folder)
         self.load_campaign(name, folder=folder)
         self.run_count = 0
         while 1:
@@ -171,7 +198,8 @@ class CampaignRun(Reward):
                     name=self.stage,
                     mode=self.config.CAMPAIGN_MODE if self.config.COMMAND.lower() == 'main' else 'normal'
                 )
-            if self.commission_notice_show_at_campaign():
+            if self.config.ENABLE_REWARD and self.commission_notice_show_at_campaign():
+                logger.info('Commission notice found')
                 if self.reward():
                     self.campaign.fleet_checked_reset()
                     continue
