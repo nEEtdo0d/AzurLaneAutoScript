@@ -105,10 +105,10 @@ class GuildLogistics(GuildBase):
             return False
         else:
             # Unfinished mission accept/collect range from about 240 to 322
-            if self.image_color_count(GUILD_MISSION, color=(255, 255, 255), threshold=180, count=400):
-                return True
-            else:
+            if self.image_color_count(GUILD_MISSION, color=(255, 255, 255), threshold=235, count=100):
                 return False
+            else:
+                return True
 
     def _guild_logistics_supply_available(self):
         """
