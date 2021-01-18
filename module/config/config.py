@@ -477,6 +477,12 @@ class AzurLaneConfig:
     WAR_ARCHIVES_FLEETS = [1, 2, 1]
 
     """
+    module.os_ash
+    """
+    ENABLE_OS_ASH_ASSIST = True
+    OS_ASH_ASSIST_TIER = 15
+
+    """
     C_1_1_affinity_farming
     """
     C11_AFFINITY_BATTLE_COUNT = 0
@@ -712,6 +718,9 @@ class AzurLaneConfig:
         self.RAID_HARD = to_bool(option['raid_hard'])
         self.RAID_NORMAL = to_bool(option['raid_normal'])
         self.RAID_EASY = to_bool(option['raid_easy'])
+        # Operation Siren
+        self.ENABLE_OS_ASH_ASSIST = to_bool(option['enable_os_ash_assist'])
+        self.OS_ASH_ASSIST_TIER = int(option['os_ash_assist_tier'])
 
         # Event
         option = config['Event']
