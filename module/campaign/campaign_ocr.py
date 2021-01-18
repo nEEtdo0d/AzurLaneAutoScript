@@ -32,6 +32,8 @@ class CampaignOcr(ModuleBase):
                 return 1
             elif name in ['b', 'd', 'ex_ex']:
                 return 2
+            else:
+                raise CampaignNameError
 
     @staticmethod
     def _campaign_ocr_result_process(result):
@@ -166,6 +168,10 @@ class CampaignOcr(ModuleBase):
         result = [self._campaign_ocr_result_process(res) for res in result]
 
         chapter = [self._campaign_separate_name(res)[0] for res in result]
+        chapter = list(filter(('').__ne__, chapter))
+        if not chapter:
+            raise CampaignNameError
+
         counter = collections.Counter(chapter)
         self.campaign_chapter = counter.most_common()[0][0]
 

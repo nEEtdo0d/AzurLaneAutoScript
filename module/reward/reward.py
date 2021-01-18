@@ -184,6 +184,12 @@ class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, 
                     timeout.reset()
                     continue
 
+            if self.handle_mission_popup_ack():
+                click_timer.reset()
+                exit_timer.reset()
+                timeout.reset()
+                continue
+
             if self.story_skip():
                 click_timer.reset()
                 exit_timer.reset()
@@ -226,7 +232,7 @@ class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, 
 
     def daily_wrapper_run(self):
         count = 0
-        total = 6
+        total = 7
 
         if self.config.ENABLE_EXERCISE:
             from module.exercise.exercise import Exercise
@@ -271,6 +277,15 @@ class Reward(RewardCommission, RewardTacticalClass, RewardResearch, RewardDorm, 
                 az.run()
                 az.record_save()
                 count += 1
+
+        if self.config.ENABLE_OS_ASH_ASSIST:
+            from module.os_ash.ash import AshDaily
+            az = AshDaily(self.config, device=self.device)
+            if not az.record_executed_since():
+                az.run()
+                az.record_save()
+                # Ash assist doesn't finish any daily mission, so not counted in.
+                # count += 1
 
         if self.config.ENABLE_DISTRESS:
             from module.distress.distress import DistressSignal

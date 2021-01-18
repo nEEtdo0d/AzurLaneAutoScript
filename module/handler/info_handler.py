@@ -120,6 +120,44 @@ class InfoHandler(ModuleBase):
         return False
 
     """
+    Guild popup info
+    """
+    def handle_guild_popup_confirm(self):
+        if self.appear(GUILD_POPUP_CONFIRM, offset=self._popup_offset) \
+                and self.appear(GUILD_POPUP_CANCEL, offset=self._popup_offset, interval=2):
+            self.device.click(GUILD_POPUP_CONFIRM)
+            return True
+
+        return False
+
+    def handle_guild_popup_cancel(self):
+        if self.appear(GUILD_POPUP_CONFIRM, offset=self._popup_offset) \
+                and self.appear(GUILD_POPUP_CANCEL, offset=self._popup_offset, interval=2):
+            self.device.click(GUILD_POPUP_CANCEL)
+            return True
+
+        return False
+
+    """
+    Mission popup info
+    """
+    def handle_mission_popup_go(self):
+        if self.appear(MISSION_POPUP_ACK, offset=self._popup_offset) \
+                and self.appear(MISSION_POPUP_GO, offset=self._popup_offset, interval=2):
+            self.device.click(MISSION_POPUP_GO)
+            return True
+
+        return False
+
+    def handle_mission_popup_ack(self):
+        if self.appear(MISSION_POPUP_GO, offset=self._popup_offset) \
+                and self.appear(MISSION_POPUP_ACK, offset=self._popup_offset, interval=2):
+            self.device.click(MISSION_POPUP_ACK)
+            return True
+
+        return False
+
+    """
     Story
     """
     story_popup_timout = Timer(10, count=20)

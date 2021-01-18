@@ -450,6 +450,7 @@ class AzurLaneConfig:
     GUILD_LOGISTICS_PLATE_T2_ORDER_STRING = 'torpedo > antiair > plane > gun > general'
     GUILD_LOGISTICS_PLATE_T3_ORDER_STRING = 'torpedo > antiair > plane > gun > general'
     ENABLE_GUILD_OPERATIONS_BOSS_AUTO = False
+    ENABLE_GUILD_OPERATIONS_BOSS_RECOMMEND = False
 
     """
     module.research
@@ -479,6 +480,12 @@ class AzurLaneConfig:
     USE_DATA_KEY = False
     WAR_ARCHIVES_NAME = ''
     WAR_ARCHIVES_STAGE = ''
+
+    """
+    module.os_ash
+    """
+    ENABLE_OS_ASH_ASSIST = True
+    OS_ASH_ASSIST_TIER = 15
 
     """
     C_1_1_affinity_farming
@@ -642,7 +649,7 @@ class AzurLaneConfig:
                      'enable_commission_reward', 'enable_tactical_reward', 'enable_daily_reward',
                      'enable_research_reward',
                      'enable_data_key_collect', 'enable_train_meowfficer',
-                     'enable_guild_logistics', 'enable_guild_operations', 'enable_guild_operations_boss_auto']:
+                     'enable_guild_logistics', 'enable_guild_operations', 'enable_guild_operations_boss_auto', 'enable_guild_operations_boss_recommend']:
             self.__setattr__(attr.upper(), to_bool(option[attr]))
         if not option['commission_time_limit'].isdigit():
             self.COMMISSION_TIME_LIMIT = future_time(option['commission_time_limit'])
@@ -729,6 +736,9 @@ class AzurLaneConfig:
         self.RAID_HARD = to_bool(option['raid_hard'])
         self.RAID_NORMAL = to_bool(option['raid_normal'])
         self.RAID_EASY = to_bool(option['raid_easy'])
+        # Operation Siren
+        self.ENABLE_OS_ASH_ASSIST = to_bool(option['enable_os_ash_assist'])
+        self.OS_ASH_ASSIST_TIER = int(option['os_ash_assist_tier'])
 
         # Event
         option = config['Event']

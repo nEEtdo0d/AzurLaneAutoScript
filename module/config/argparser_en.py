@@ -348,7 +348,11 @@ def main(ini_name=''):
     reward_guild_logistics_plates.add_argument('--guild_logistics_plate_t3_order_string', default=default('--guild_logistics_plate_t3_order_string'),
                         gooey_options={'label_color': '#4B5F83'})
     reward_guild_operations_boss = reward_guild.add_argument_group('Operations guild raid boss input', '', gooey_options={'label_color': '#4B5F83'})
-    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_auto', default=default('--enable_guild_operations_boss_auto'), help='Enable auto-battle of guild raid boss.', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_auto', default=default('--enable_guild_operations_boss_auto'),
+                                              help='Enable auto-battle of guild raid boss. If fleet composition with or without guild support is incomplete, does not attempt. Enable boss recommend to bypass',
+                                              choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_recommend', default=default('--enable_guild_operations_boss_recommend'),
+                                              help='Enable auto-recommend a fleet composition for guild raid boss, all guild support is removed if any', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
 
     # ==========emulator==========
     emulator_parser = subs.add_parser('emulator')
@@ -412,6 +416,8 @@ def main(ini_name=''):
     daily.add_argument('--enable_event_ab', default=default('--enable_event_ab'),
                        help='If there is a record after refreshing, skip', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
     daily.add_argument('--enable_event_sp', default=default('--enable_event_sp'),
+                       help='If there is a record after refreshing, skip', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
+    daily.add_argument('--enable_os_ash_assist', default=default('--enable_os_ash_assist'),
                        help='If there is a record after refreshing, skip', choices=['yes', 'no'], gooey_options={'label_color': '#4B5F83'})
 
     # 每日设置
@@ -478,6 +484,10 @@ def main(ini_name=''):
     raid_bonus.add_argument('--raid_hard', default=default('--raid_hard'), choices=['yes', 'no'], help='', gooey_options={'label_color': '#4B5F83'})
     raid_bonus.add_argument('--raid_normal', default=default('--raid_normal'), choices=['yes', 'no'], help='', gooey_options={'label_color': '#4B5F83'})
     raid_bonus.add_argument('--raid_easy', default=default('--raid_easy'), choices=['yes', 'no'], help='', gooey_options={'label_color': '#4B5F83'})
+
+    # OS daily
+    raid_bonus = daily_parser.add_argument_group('OS settings', '', gooey_options={'label_color': '#931D03'})
+    raid_bonus.add_argument('--os_ash_assist_tier', default=default('--os_ash_assist_tier'), help='Find beacons with tier greater or equal than this', gooey_options={'label_color': '#4B5F83'})
 
     # ==========event_daily_ab==========
     # event_ab_parser = subs.add_parser('event_daily_bonus')

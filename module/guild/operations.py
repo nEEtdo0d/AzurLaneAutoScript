@@ -1,5 +1,3 @@
-import numpy as np
-
 from module.base.mask import Mask
 from module.base.timer import Timer
 from module.base.utils import *
@@ -8,7 +6,14 @@ from module.guild.base import GuildBase
 from module.logger import logger
 from module.template.assets import TEMPLATE_OPERATIONS_RED_DOT, TEMPLATE_OPERATIONS_ADD
 
+RECORD_OPTION_DISPATCH = ('RewardRecord', 'operations_dispatch')
+RECORD_SINCE_DISPATCH = (6, 12, 18, 21,)
+RECORD_OPTION_BOSS = ('RewardRecord', 'operations_boss')
+RECORD_SINCE_BOSS = (0,)
+
 MASK_OPERATIONS = Mask(file='./assets/mask/MASK_OPERATIONS.png')
+MASK_SIDEBAR_RED_DOT = Mask(file='./assets/mask/MASK_SIDEBAR_RED_DOT.png')
+
 
 class GuildOperations(GuildBase):
     def _guild_operations_mode_ensure(self, skip_first_screenshot=True):
@@ -24,7 +29,7 @@ class GuildOperations(GuildBase):
             out: GUILD_OPERATIONS_ANY
         """
         if not self.guild_sidebar_ensure(1):
-            logger.info('Operations ensurance failed, try again on next reward loop')
+            logger.info('Operations sidebar not ensured, try again on next reward loop')
             return None
 
         confirm_timer = Timer(1.5, count=3).start()
@@ -46,7 +51,9 @@ class GuildOperations(GuildBase):
                 confirm_timer.reset()
 
         if self.appear(GUILD_OPERATIONS_INACTIVE_CHECK) and self.appear(GUILD_OPERATIONS_ACTIVE_CHECK):
-            logger.info('Mode: Operations Inactive, please contact your Elite/Officer/Leader seniors to select an operation difficulty')
+            logger.info(
+                'Mode: Operations Inactive, please contact your Elite/Officer/Leader seniors to select '
+                'an operation difficulty')
             return 0
         elif self.appear(GUILD_OPERATIONS_ACTIVE_CHECK):
             logger.info('Mode: Operations Active, may proceed to scan and dispatch fleets')
@@ -57,6 +64,31 @@ class GuildOperations(GuildBase):
         else:
             logger.warning('Operations interface is unrecognized')
             return None
+
+    def _guild_operations_red_dot_present(self):
+        """
+        Helper function to perform an isolated scan
+        for the lower bottom left sidebar whether
+        a red dot is present.
+        The red dot could either be Tech
+        or Operations (Guild Master vs Member).
+
+        Pages:
+            in: GUILD_ANY
+            out: GUILD_ANY
+        """
+        # Apply mask to cover potential RED_DOTs that are operations or
+        # anywhere else for that matter
+        image = MASK_SIDEBAR_RED_DOT.apply(np.array(self.device.image))
+
+        # Scan image and must have similarity greater than 0.85
+        sim, point = TEMPLATE_OPERATIONS_RED_DOT.match_result(image)
+        if sim < 0.85:
+            return False
+
+        # Unsure whether this red dot is from the Tech or Operations
+        # sidebar. But for safety will check Operations anyway
+        return True
 
     def _guild_operations_enter_ensure(self):
         """
@@ -119,13 +151,13 @@ class GuildOperations(GuildBase):
         expand_button = area_offset(area=(-4, -4, 4, 4), offset=expand_point)
         open_button = area_offset(area=(-4, -4, 4, 4), offset=open_point)
 
-        expand = Button(area=expand_button, color=(), button=expand_button, name='EXPAND_OPERATION')
-        open = Button(area=open_button, color=(), button=open_button, name='OPEN_OPERATION')
+        expand_click = Button(area=expand_button, color=(), button=expand_button, name='EXPAND_OPERATION')
+        open_click = Button(area=open_button, color=(), button=open_button, name='OPEN_OPERATION')
 
         logger.info('Active operation found in this area, attempting to enter')
-        self.device.click(expand)
+        self.device.click(expand_click)
         self.device.sleep((0.5, 0.8))
-        self.device.click(open)
+        self.device.click(open_click)
 
         if self._guild_operations_enter_ensure():
             return 1
@@ -149,15 +181,7 @@ class GuildOperations(GuildBase):
             else:
                 self.device.screenshot()
 
-            if self.appear_then_click(GUILD_DISPATCH_QUICK, interval=5):
-                confirm_timer.reset()
-                close_timer.reset()
-                continue
-
-            if self.appear(GUILD_DISPATCH_EMPTY, interval=5):
-                self.device.click(GUILD_DISPATCH_RECOMMEND)
-                self.device.sleep((0.5, 0.8))
-                self.device.click(GUILD_DISPATCH_FLEET)
+            if self.appear_then_click(GUILD_DISPATCH_QUICK, offset=(20, 20), interval=3):
                 confirm_timer.reset()
                 close_timer.reset()
                 continue
@@ -174,7 +198,17 @@ class GuildOperations(GuildBase):
                     add_timer.reset()
                     close_timer.reset()
                     continue
-                add_timer.reset()
+
+            if self.appear(GUILD_DISPATCH_EMPTY, interval=3):
+                self.device.click(GUILD_DISPATCH_RECOMMEND)
+                confirm_timer.reset()
+                close_timer.reset()
+                continue
+
+            if self.appear_then_click(GUILD_DISPATCH_FLEET, offset=(20, 20), interval=3):
+                confirm_timer.reset()
+                close_timer.reset()
+                continue
 
             if self.handle_popup_confirm('GUILD_DISPATCH'):
                 # Explicit click since GUILD_DISPATCH_FLEET
@@ -192,8 +226,8 @@ class GuildOperations(GuildBase):
                 # dispatched, don't want to exit prematurely
                 if close_timer.reached_and_reset():
                     self.device.click(GUILD_DISPATCH_CLOSE)
-                confirm_timer.reset()
-                continue
+                    confirm_timer.reset()
+                    continue
 
             # End
             if self.appear(GUILD_OPERATIONS_ACTIVE_CHECK):
@@ -201,7 +235,6 @@ class GuildOperations(GuildBase):
                     break
             else:
                 confirm_timer.reset()
-                close_timer.reset()
 
     def _guild_operations_scan(self, skip_first_screenshot=True):
         """
@@ -209,13 +242,13 @@ class GuildOperations(GuildBase):
         and additional events
         Scanning for active operations
         if found enters and dispatch fleet
-        otherwise swipes forward until
-        reached end of map
+        otherwise exits upon reaching timeout
 
         Pages:
             in: GUILD_OPERATIONS_MAP
             out: GUILD_OPERATIONS_MAP
         """
+        scan_timeout = Timer(1.5, count=3)
         while 1:
             if skip_first_screenshot:
                 skip_first_screenshot = False
@@ -227,21 +260,30 @@ class GuildOperations(GuildBase):
             if entered:
                 if entered == 1:
                     self._guild_operations_dispatch()
+                scan_timeout.reset()
                 continue
 
-            if not self.view_forward():
+            # if not self.guild_view_forward():
+            #     break
+            if not scan_timeout.started():
+                scan_timeout.reset()
+            elif scan_timeout.reached():
                 break
 
-    def _guild_operations_boss_preparation(self, skip_first_screenshot=True):
+    def _guild_operations_boss_preparation(self, az, skip_first_screenshot=True):
         """
-        Execute preperation sequence for guild raid boss
+        Execute preparation sequence for guild raid boss
+
+        az is a GuildCombat instance to handle combat various
+        interfaces. Independently created to avoid conflicts
+        or override methods of parent/child objects
 
         Pages:
             in: GUILD_OPERATIONS_BOSS
             out: IN_BATTLE
         """
         is_loading = False
-        empty_timer = Timer(3, count=6)
+        dispatch_count = 0
         while 1:
             if skip_first_screenshot:
                 skip_first_screenshot = False
@@ -251,33 +293,33 @@ class GuildOperations(GuildBase):
             if self.appear_then_click(GUILD_BOSS_ENTER, interval=3):
                 continue
 
-            if self.appear(GUILD_DISPATCH_EMPTY_2):
-                # Account for loading lag especially if using
-                # guild support
-                if not empty_timer.started():
-                    empty_timer.reset()
-                    continue
-                elif empty_timer.reached():
-                    logger.warning('Fleet composition empty, cannot auto-battle Guild Raid Boss')
-                    return False
-
             if self.appear(GUILD_DISPATCH_FLEET, interval=3):
                 # Button does not appear greyed out even
                 # when empty fleet composition
-                if not self.appear(GUILD_DISPATCH_EMPTY_2):
+                if dispatch_count < 3:
                     self.device.click(GUILD_DISPATCH_FLEET)
+                    dispatch_count += 1
+                else:
+                    logger.warning('Fleet composition error. Preloaded guild support selection may be '
+                                   'preventing dispatch. Suggestion: Enable Boss Recommend')
+                    return False
+                continue
+
+            if self.config.ENABLE_GUILD_OPERATIONS_BOSS_RECOMMEND:
+                if self.info_bar_count() and self.appear_then_click(GUILD_DISPATCH_RECOMMEND_2, interval=3):
+                    continue
 
             # Only print once when detected
             if not is_loading:
-                if self.is_combat_loading():
+                if az.is_combat_loading():
                     is_loading = True
-                continue
+                    continue
 
-            if self.handle_combat_automation_confirm():
+            if az.handle_combat_automation_confirm():
                 continue
 
             # End
-            if self.is_combat_executing():
+            if az.is_combat_executing():
                 return True
 
     def _guild_operations_boss_combat(self):
@@ -289,11 +331,15 @@ class GuildOperations(GuildBase):
             in: GUILD_OPERATIONS_BOSS
             out: GUILD_OPERATIONS_BOSS
         """
-        if not self._guild_operations_boss_preparation():
-            return
-        self.combat_execute(auto='combat_auto')
-        self.combat_status(expected_end='in_ui')
+        from module.guild.guild_combat import GuildCombat
+        az = GuildCombat(self.config, device=self.device)
+
+        if not self._guild_operations_boss_preparation(az):
+            return False
+        az.combat_execute(auto='combat_auto')
+        az.combat_status(expected_end='in_ui')
         logger.info('Guild Raid Boss has been repelled')
+        return True
 
     def guild_operations(self):
         # Determine the mode of operations, currently 3 are available
@@ -305,10 +351,24 @@ class GuildOperations(GuildBase):
         if operations_mode == 0:
             return
         elif operations_mode == 1:
-            self._guild_operations_scan()
+            # Limit check for scanning operations to 4 times a day i.e. 6-hour intervals, 4th time reduced to 3-hour
+            if not self.config.record_executed_since(option=RECORD_OPTION_DISPATCH,
+                                                     since=RECORD_SINCE_DISPATCH) or \
+                    self._guild_operations_red_dot_present():
+                self._guild_operations_scan()
+                self.config.record_save(option=RECORD_OPTION_DISPATCH)
         else:
-            if self.appear(GUILD_BOSS_AVAILABLE):
-                if self.config.ENABLE_GUILD_OPERATIONS_BOSS_AUTO:
-                    self._guild_operations_boss_combat()
-                else:
-                    logger.info('Auto-battle disabled, play manually to complete this Guild Task')
+            # Limit check for Guild Raid Boss to once a day
+            if not self.config.record_executed_since(option=RECORD_OPTION_BOSS,
+                                                     since=RECORD_SINCE_BOSS) or \
+                    self._guild_operations_red_dot_present():
+                skip_record = False
+                if self.appear(GUILD_BOSS_AVAILABLE):
+                    if self.config.ENABLE_GUILD_OPERATIONS_BOSS_AUTO:
+                        if not self._guild_operations_boss_combat():
+                            skip_record = True
+                    else:
+                        logger.info('Auto-battle disabled, play manually to complete this Guild Task')
+
+                if not skip_record:
+                    self.config.record_save(option=RECORD_OPTION_BOSS)
