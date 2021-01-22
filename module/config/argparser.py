@@ -150,9 +150,11 @@ def main(ini_name=''):
     # stop.add_argument('--如果船舱已满', default=default('--如果船舱已满'), choices=['是', '否'])
 
     # 出击舰队
-    fleet = setting_parser.add_argument_group('出击舰队', '暂不支持备用道中队, 非活动图或周回模式会忽略步长设置', gooey_options={'label_color': '#931D03'})
-    fleet.add_argument('--启用舰队控制', default=default('--启用舰队控制'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    fleet = setting_parser.add_argument_group('出击舰队', '非活动图或周回模式会忽略步长设置', gooey_options={'label_color': '#931D03'})
     fleet.add_argument('--启用阵容锁定', default=default('--启用阵容锁定'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    fleet.add_argument('--启用困难图舰队反转', default=default('--启用困难图舰队反转'), choices=['是', '否'], help='使用二队打道中, 一队打BOSS, 仅困难图和活动困难图生效', gooey_options={'label_color': '#4B5F83'})
+    fleet.add_argument('--启用自律寻敌', default=default('--启用自律寻敌'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    fleet.add_argument('--自律寻敌设置', default=default('--自律寻敌设置'), choices=['一队道中二队BOSS', '一队BOSS二队道中', '一队全部二队待机', '一队待机二队全部'], gooey_options={'label_color': '#4B5F83'})
 
     f1 = fleet.add_argument_group('道中队', gooey_options={'label_color': '#931D03'})
     f1.add_argument('--舰队编号1', default=default('--舰队编号1'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
@@ -165,12 +167,6 @@ def main(ini_name=''):
     f2.add_argument('--舰队阵型2', default=default('--舰队阵型2'), choices=['单纵阵', '复纵阵', '轮形阵'], gooey_options={'label_color': '#4B5F83'})
     f2.add_argument('--自律模式2', default=default('--自律模式2'), choices=['自律', '手操', '中路站桩', '躲左下角'], gooey_options={'label_color': '#4B5F83'})
     f2.add_argument('--舰队步长2', default=default('--舰队步长2'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
-
-    f3 = fleet.add_argument_group('备用道中队', gooey_options={'label_color': '#931D03'})
-    f3.add_argument('--舰队编号3', default=default('--舰队编号3'), choices=['不使用', '1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
-    f3.add_argument('--舰队阵型3', default=default('--舰队阵型3'), choices=['单纵阵', '复纵阵', '轮形阵'], gooey_options={'label_color': '#4B5F83'})
-    f3.add_argument('--自律模式3', default=default('--自律模式3'), choices=['自律', '手操', '中路站桩', '躲左下角'], gooey_options={'label_color': '#4B5F83'})
-    f3.add_argument('--舰队步长3', default=default('--舰队步长3'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
 
     # 潜艇设置
     submarine = setting_parser.add_argument_group('潜艇设置', '仅支持: 不使用, 仅狩猎, 每战出击', gooey_options={'label_color': '#931D03'})
@@ -191,11 +187,6 @@ def main(ini_name=''):
     e2.add_argument('--心情回复2', default=default('--心情回复2'), choices=['未放置于后宅', '后宅一楼', '后宅二楼'], gooey_options={'label_color': '#4B5F83'})
     e2.add_argument('--心情控制2', default=default('--心情控制2'), choices=['保持经验加成', '防止绿脸', '防止黄脸', '防止红脸'], gooey_options={'label_color': '#4B5F83'})
     e2.add_argument('--全员已婚2', default=default('--全员已婚2'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
-
-    e3 = emotion.add_argument_group('备用道中队', '会在主队触发心情控制时使用', gooey_options={'label_color': '#931D03'})
-    e3.add_argument('--心情回复3', default=default('--心情回复3'), choices=['未放置于后宅', '后宅一楼', '后宅二楼'], gooey_options={'label_color': '#4B5F83'})
-    e3.add_argument('--心情控制3', default=default('--心情控制3'), choices=['保持经验加成', '防止绿脸', '防止黄脸', '防止红脸'], gooey_options={'label_color': '#4B5F83'})
-    e3.add_argument('--全员已婚3', default=default('--全员已婚3'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
 
     # 血量平衡
     hp = setting_parser.add_argument_group('血量控制', '需关闭舰队锁定才能生效', gooey_options={'label_color': '#931D03'})
@@ -315,7 +306,7 @@ def main(ini_name=''):
 
     reward_guild = reward_parser.add_argument_group('大舰队', '检查大舰队后勤和大舰队作战', gooey_options={'label_color': '#931D03'})
     reward_guild.add_argument('--启用大舰队后勤', default=default('--启用大舰队后勤'), help='领取大舰队任务, 提交筹备物资, 领取舰队奖励', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
-    reward_guild.add_argument('--启用大舰队作战', default=default('--启用大舰队作战'), help='暂不支持', choices=['否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--启用大舰队作战', default=default('--启用大舰队作战'), help='执行大舰队作战派遣, 打大舰队BOSS', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     reward_guild.add_argument('--大舰队收获间隔', default=default('--大舰队收获间隔'), help='每隔多少分钟触发, 推荐使用时间区间, 比如"10, 40"', gooey_options={'label_color': '#4B5F83'})
     reward_guild_logistics_items = reward_guild.add_argument_group('筹备物品提交顺序', '可用字符: t1, t2, t3, oxycola, coolant, coins, oil, and merit. 省略某个字符来跳过该物品的提交', gooey_options={'label_color': '#4B5F83'})
     reward_guild_logistics_items.add_argument('--物品提交顺序', default=default('--物品提交顺序'), gooey_options={'label_color': '#4B5F83'})
@@ -323,12 +314,9 @@ def main(ini_name=''):
     reward_guild_logistics_plates.add_argument('--部件提交顺序T1', default=default('--部件提交顺序T1'), gooey_options={'label_color': '#4B5F83'})
     reward_guild_logistics_plates.add_argument('--部件提交顺序T2', default=default('--部件提交顺序T2'), gooey_options={'label_color': '#4B5F83'})
     reward_guild_logistics_plates.add_argument('--部件提交顺序T3', default=default('--部件提交顺序T3'), gooey_options={'label_color': '#4B5F83'})
-    reward_guild_operations_boss = reward_guild.add_argument_group('Operations guild raid boss input', '', gooey_options={'label_color': '#4B5F83'})
-    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_auto', default=default('--enable_guild_operations_boss_auto'),
-                                              help='Enable auto-battle of guild raid boss. If fleet composition with or without guild support is incomplete, does not attempt. Enable boss recommend to bypass',
-                                              choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
-    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_recommend', default=default('--enable_guild_operations_boss_recommend'),
-                                              help='Enable auto-recommend a fleet composition for guild raid boss, all guild support is removed if any', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss = reward_guild.add_argument_group('大舰队BOSS', '', gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--启用大舰队BOSS出击', default=default('--启用大舰队BOSS出击'), help='自动打大舰队BOSS, 需要预先在游戏内设置队伍', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--启用大舰队BOSS队伍推荐', default=default('--启用大舰队BOSS队伍推荐'), help='使用游戏自动推荐的队伍打BOSS', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
 
     # ==========设备设置==========
     emulator_parser = subs.add_parser('设备设置')

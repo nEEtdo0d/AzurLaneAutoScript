@@ -1,6 +1,6 @@
-from module.base.base import ModuleBase
 from module.base.utils import color_bar_percentage
 from module.handler.assets import *
+from module.handler.auto_search import AutoSearchHandler
 from module.logger import logger
 from module.ui.switch import Switch
 
@@ -10,9 +10,12 @@ fast_forward.add_status('off', check_button=FAST_FORWARD_OFF)
 fleet_lock = Switch('Fleet_Lock', offset=(5, 5))
 fleet_lock.add_status('on', check_button=FLEET_LOCKED)
 fleet_lock.add_status('off', check_button=FLEET_UNLOCKED)
+auto_search = Switch('Auto_Search', offset=(20, 20))
+auto_search.add_status('on', check_button=AUTO_SEARCH_ON)
+auto_search.add_status('off', check_button=AUTO_SEARCH_OFF)
 
 
-class FastForwardHandler(ModuleBase):
+class FastForwardHandler(AutoSearchHandler):
     map_clear_percentage = 0.
     map_achieved_star_1 = False
     map_achieved_star_2 = False
@@ -28,8 +31,7 @@ class FastForwardHandler(ModuleBase):
         Logs:
             | INFO | [Map_info] 98%, star_1, star_2, star_3, clear, 3_star, green, fast_forward
         """
-        self.map_clear_percentage = color_bar_percentage(
-            self.device.image, area=MAP_CLEAR_PERCENTAGE.area, prev_color=(231, 170, 82))
+        self.map_clear_percentage = self.get_map_clear_percentage()
         self.map_achieved_star_1 = self.appear(MAP_STAR_1)
         self.map_achieved_star_2 = self.appear(MAP_STAR_2)
         self.map_achieved_star_3 = self.appear(MAP_STAR_3)
@@ -55,6 +57,7 @@ class FastForwardHandler(ModuleBase):
         text = ', '.join([l for l, n in zip(log_names, names) if self.__getattribute__(n)])
         text = f'{int(self.map_clear_percentage * 100)}%, ' + text
         logger.attr('Map_info', text)
+        logger.attr('STOP_IF_MAP_REACH', self.config.STOP_IF_MAP_REACH)
 
     def handle_fast_forward(self):
         if not self.map_has_fast_forward:
@@ -90,10 +93,48 @@ class FastForwardHandler(ModuleBase):
 
         return changed
 
+    def handle_auto_search(self):
+        """
+        Returns:
+            bool: If changed
+
+        Pages:
+            in: MAP_PREPARATION
+        """
+        # if not self.map_is_clear_mode:
+        #     return False
+
+        if not auto_search.appear(main=self):
+            logger.info('No auto search option.')
+            return False
+
+        status = 'on' if self.config.ENABLE_AUTO_SEARCH else 'off'
+        changed = auto_search.set(status=status, main=self)
+
+        return changed
+
+    def handle_auto_search_setting(self):
+        """
+        Returns:
+            bool: If changed
+
+        Pages:
+            in: FLEET_PREPARATION
+        """
+        if not self.map_is_clear_mode or not self.config.ENABLE_AUTO_SEARCH:
+            return False
+
+        self.fleet_preparation_sidebar_ensure(3)
+        self.auto_search_setting_ensure(self.config.AUTO_SEARCH_SETTING)
+        return True
+
     def get_map_clear_percentage(self):
         """
         Returns:
             float: 0 to 1.
+
+        Pages:
+            in: MAP_PREPARATION
         """
         return color_bar_percentage(self.device.image, area=MAP_CLEAR_PERCENTAGE.area, prev_color=(231, 170, 82))
 

@@ -150,9 +150,11 @@ def main(ini_name=''):
     # stop.add_argument('--如果船塢已滿', default=default('--如果船塢已滿'), choices=['是', '否'])
 
     # 出擊艦隊
-    fleet = setting_parser.add_argument_group('出擊艦隊', '暫不支援備用道中隊, 非活動圖或周回模式會忽略步長設定', gooey_options={'label_color': '#931D03'})
-    fleet.add_argument('--啟用艦隊控制', default=default('--啟用艦隊控制'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    fleet = setting_parser.add_argument_group('出擊艦隊', '非活動圖或周回模式會忽略步長設定', gooey_options={'label_color': '#931D03'})
     fleet.add_argument('--啟用陣容鎖定', default=default('--啟用陣容鎖定'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    fleet.add_argument('--啟用困難圖艦隊反轉', default=default('--啟用困難圖艦隊反轉'), choices=['是', '否'], help='使用二隊打道中, 一隊打BOSS, 僅困難圖和活動困難圖生效', gooey_options={'label_color': '#4B5F83'})
+    fleet.add_argument('--啟用自律尋敵', default=default('--啟用自律尋敵'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    fleet.add_argument('--自律尋敵設置', default=default('--自律尋敵設置'), choices=['一隊道中二隊BOSS', '一隊BOSS二隊道中', '一隊全部二隊待機', '一隊待機二隊全部'], gooey_options={'label_color': '#4B5F83'})
 
     f1 = fleet.add_argument_group('道中隊', gooey_options={'label_color': '#931D03'})
     f1.add_argument('--艦隊編號1', default=default('--艦隊編號1'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
@@ -165,12 +167,6 @@ def main(ini_name=''):
     f2.add_argument('--艦隊陣型2', default=default('--艦隊陣型2'), choices=['單縱陣', '復縱陣', '輪型陣'], gooey_options={'label_color': '#4B5F83'})
     f2.add_argument('--自律模式2', default=default('--自律模式2'), choices=['自律', '手操', '中路站樁', '躲左下角'], gooey_options={'label_color': '#4B5F83'})
     f2.add_argument('--艦隊步長2', default=default('--艦隊步長2'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
-
-    f3 = fleet.add_argument_group('备用道中队', gooey_options={'label_color': '#931D03'})
-    f3.add_argument('--艦隊編號3', default=default('--艦隊編號3'), choices=['不使用', '1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
-    f3.add_argument('--艦隊陣型3', default=default('--艦隊陣型3'), choices=['單縱陣', '復縱陣', '輪型陣'], gooey_options={'label_color': '#4B5F83'})
-    f3.add_argument('--自律模式3', default=default('--自律模式3'), choices=['自律', '手操', '中路站樁', '躲左下角'], gooey_options={'label_color': '#4B5F83'})
-    f3.add_argument('--艦隊步長3', default=default('--艦隊步長3'), choices=['1', '2', '3', '4', '5', '6'], gooey_options={'label_color': '#4B5F83'})
 
     # 潛艇設定
     submarine = setting_parser.add_argument_group('潛艇設定', '僅支援：不使用、僅狩獵、每戰出擊', gooey_options={'label_color': '#931D03'})
@@ -191,11 +187,6 @@ def main(ini_name=''):
     e2.add_argument('--心情回復2', default=default('--心情回復2'), choices=['未放置於後宅', '後宅一樓', '後宅二樓'], gooey_options={'label_color': '#4B5F83'})
     e2.add_argument('--心情控制2', default=default('--心情控制2'), choices=['保持經驗加成', '防止綠臉', '防止黃臉', '防止紅臉'], gooey_options={'label_color': '#4B5F83'})
     e2.add_argument('--全員已婚2', default=default('--全員已婚2'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
-
-    e3 = emotion.add_argument_group('備用道中隊', '會在主隊觸發心情控制時使用', gooey_options={'label_color': '#931D03'})
-    e3.add_argument('--心情回復3', default=default('--心情回復3'), choices=['未放置於後宅', '後宅一樓', '後宅二樓'], gooey_options={'label_color': '#4B5F83'})
-    e3.add_argument('--心情控制3', default=default('--心情控制3'), choices=['保持經驗加成', '防止綠臉', '防止黃臉', '防止紅臉'], gooey_options={'label_color': '#4B5F83'})
-    e3.add_argument('--全員已婚3', default=default('--全員已婚3'), choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
 
     # 血量平衡
     hp = setting_parser.add_argument_group('血量控制', '需關閉艦隊鎖定才能生效', gooey_options={'label_color': '#931D03'})
@@ -314,7 +305,7 @@ def main(ini_name=''):
 
     reward_guild = reward_parser.add_argument_group('大艦隊', '檢查大艦隊後勤和大艦隊作戰', gooey_options={'label_color': '#931D03'})
     reward_guild.add_argument('--啟用大艦隊後勤', default=default('--啟用大艦隊後勤'), help='領取大艦隊任務, 提交籌備物資, 領取艦隊獎勵', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
-    reward_guild.add_argument('--啟用大艦隊作戰', default=default('--啟用大艦隊作戰'), help='暫不支持', choices=['否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild.add_argument('--啟用大艦隊作戰', default=default('--啟用大艦隊作戰'), help='執行大艦隊作戰派遣, 打大艦隊BOSS', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
     reward_guild.add_argument('--大艦隊收穫間隔', default=default('--大艦隊收穫間隔'), help='每隔多少分鐘觸發, 推薦使用時間區間, 比如"10, 40"', gooey_options={'label_color': '#4B5F83'})
     reward_guild_logistics_items = reward_guild.add_argument_group('籌備物品提交順序', '可用字符: t1, t2, t3, oxycola, coolant, coins, oil, and merit. 省略某個字符來跳過該物品的提交', gooey_options={'label_color': '#4B5F83'})
     reward_guild_logistics_items.add_argument('--物品提交順序', default=default('--物品提交順序'), gooey_options={'label_color': '#4B5F83'})
@@ -323,11 +314,8 @@ def main(ini_name=''):
     reward_guild_logistics_plates.add_argument('--部件提交順序T2', default=default('--部件提交順序T2'), gooey_options={'label_color': '#4B5F83'})
     reward_guild_logistics_plates.add_argument('--部件提交順序T3', default=default('--部件提交順序T3'), gooey_options={'label_color': '#4B5F83'})
     reward_guild_operations_boss = reward_guild.add_argument_group('Operations guild raid boss input', '', gooey_options={'label_color': '#4B5F83'})
-    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_auto', default=default('--enable_guild_operations_boss_auto'),
-                                              help='Enable auto-battle of guild raid boss. If fleet composition with or without guild support is incomplete, does not attempt. Enable boss recommend to bypass',
-                                              choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
-    reward_guild_operations_boss.add_argument('--enable_guild_operations_boss_recommend', default=default('--enable_guild_operations_boss_recommend'),
-                                              help='Enable auto-recommend a fleet composition for guild raid boss, all guild support is removed if any', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--啟用大艦隊BOSS出擊', default=default('--啟用大艦隊BOSS出擊'), help='自動打大艦隊BOSS, 需要預先在遊戲內設置隊伍', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
+    reward_guild_operations_boss.add_argument('--啟用大艦隊BOSS隊伍推薦', default=default('--啟用大艦隊BOSS隊伍推薦'), help='使用遊戲自動推薦的隊伍打BOSS', choices=['是', '否'], gooey_options={'label_color': '#4B5F83'})
 
     # ==========設備設定==========
     emulator_parser = subs.add_parser('設備設定')

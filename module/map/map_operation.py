@@ -64,6 +64,7 @@ class MapOperation(MysteryHandler, FleetPreparation, Retirement, FastForwardHand
             if map_timer.reached() and self.handle_map_preparation():
                 self.map_get_info()
                 self.handle_fast_forward()
+                self.handle_auto_search()
                 if self.triggered_map_stop():
                     self.enter_map_cancel()
                     raise ScriptEnd(f'Reach condition: {self.config.STOP_IF_MAP_REACH}')
@@ -77,6 +78,7 @@ class MapOperation(MysteryHandler, FleetPreparation, Retirement, FastForwardHand
                 if self.config.ENABLE_FLEET_CONTROL:
                     if mode == 'normal' or mode == 'hard':
                         self.fleet_preparation()
+                        self.handle_auto_search_setting()
                 self.device.click(FLEET_PREPARATION)
                 fleet_timer.reset()
                 campaign_timer.reset()
@@ -185,12 +187,15 @@ class MapOperation(MysteryHandler, FleetPreparation, Retirement, FastForwardHand
         return False
 
     def fleets_reversed(self):
-        return (self.config.FLEET_2 != 0) and (self.config.FLEET_2 < self.config.FLEET_1)
+        # return (self.config.FLEET_2 != 0) and (self.config.FLEET_2 < self.config.FLEET_1)
+        return self.map_is_hard_mode and self.config.ENABLE_FLEET_REVERSE_IN_HARD
 
     def handle_fleet_reverse(self):
         """
         The game chooses the fleet with a smaller index to be the first fleet,
         no matter what we choose in fleet preparation.
+
+        After the update of auto-search, the game no longer ignore user settings.
 
         Returns:
             bool: Fleet changed
@@ -201,6 +206,3 @@ class MapOperation(MysteryHandler, FleetPreparation, Retirement, FastForwardHand
         self.fleet_switch_click()
         self.ensure_no_info_bar()  # The info_bar which shows "Changed to fleet 2", will block the ammo icon
         return True
-
-    def handle_spare_fleet(self):
-        pass

@@ -126,6 +126,20 @@ def area_pad(area, pad=10):
     return tuple(np.array(area) + np.array([pad, pad, -pad, -pad]))
 
 
+def area_limit(area1, area2):
+    """
+    Limit an area in another area.
+
+    Args:
+        area1 (tuple): (upper_left_x, upper_left_y, bottom_right_x, bottom_right_y).
+        area2 (tuple): (upper_left_x, upper_left_y, bottom_right_x, bottom_right_y).
+
+    Returns:
+        tuple: (upper_left_x, upper_left_y, bottom_right_x, bottom_right_y).
+    """
+    return (max(area1[0], area2[0]), max(area1[1], area2[1]), min(area1[2], area2[2]), min(area1[3], area2[3]))
+
+
 def point_in_area(point, area, threshold=5):
     """
 
@@ -368,6 +382,28 @@ def extract_white_letters(image, threshold=128):
     minimum = cv2.min(cv2.min(r, g), b)
     maximum = cv2.max(cv2.max(r, g), b)
     return cv2.multiply(cv2.add(maximum, cv2.subtract(maximum, minimum)), 255.0 / threshold)
+
+
+def color_mapping(image, max_multiply=2):
+    """
+    Mapping color to 0-255.
+    Minimum color to 0, maximum color to 255, multiply colors by 2 at max.
+
+    Args:
+        image (np.ndarray):
+        max_multiply (int, float):
+
+    Returns:
+        np.ndarray:
+    """
+    image = image.astype(float)
+    low, high = np.min(image), np.max(image)
+    multiply = min(255 / (high - low), max_multiply)
+    add = (255 - multiply * (low + high)) / 2
+    image = cv2.add(cv2.multiply(image, multiply), add)
+    image[image > 255] = 255
+    image[image < 0] = 0
+    return image.astype(np.uint8)
 
 
 def red_overlay_transparency(color1, color2, red=247):

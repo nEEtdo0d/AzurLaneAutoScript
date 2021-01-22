@@ -31,54 +31,29 @@ class AzurLaneConfig:
     """
     Fleet
     """
-    ENABLE_FLEET_CONTROL = True
+    ENABLE_FLEET_CONTROL = True  # Deprecated, must enable
+    ENABLE_MAP_FLEET_LOCK = True
+    ENABLE_FLEET_REVERSE_IN_HARD = False
+    ENABLE_AUTO_SEARCH = False
+    # fleet1_mob_fleet2_boss, fleet1_boss_fleet2_mob, fleet1_all_fleet2_standby, fleet1_standby_fleet2_all
+    AUTO_SEARCH_SETTING = 'fleet1_mob_fleet2_boss'
     # Fleet 1-6, if empty use 0.
-    _FLEET_1 = 1
+    FLEET_1 = 1
     FLEET_2 = 2
-    FLEET_3 = 3
     # Formation 1-3.
-    _FLEET_1_FORMATION = 2
+    FLEET_1_FORMATION = 2
     FLEET_2_FORMATION = 2
-    FLEET_3_FORMATION = 2
     # Fleet step 1-6
-    _FLEET_1_STEP = 3
+    FLEET_1_STEP = 3
     FLEET_2_STEP = 2
-    FLEET_3_STEP = 3
     # Fleet 1-2, if empty use 0.
     SUBMARINE = 0
     # Combat auto mode: combat_auto, combat_manual, stand_still_in_the_middle, hide_in_bottom_left
     FLEET_1_AUTO_MODE = 'combat_auto'
     FLEET_2_AUTO_MODE = 'combat_auto'
-    FLEET_3_AUTO_MODE = 'combat_auto'
-
-    USING_SPARE_FLEET = False
 
     MOVABLE_ENEMY_FLEET_STEP = 2
     MOVABLE_ENEMY_TURN = (2,)
-
-    @property
-    def FLEET_1(self):
-        return self.FLEET_3 if self.USING_SPARE_FLEET else self._FLEET_1
-
-    @FLEET_1.setter
-    def FLEET_1(self, value):
-        self._FLEET_1 = value
-
-    @property
-    def FLEET_1_FORMATION(self):
-        return self.FLEET_3_FORMATION if self.USING_SPARE_FLEET else self._FLEET_1_FORMATION
-
-    @FLEET_1_FORMATION.setter
-    def FLEET_1_FORMATION(self, value):
-        self._FLEET_1_FORMATION = value
-
-    @property
-    def FLEET_1_STEP(self):
-        return self.FLEET_3_STEP if self.USING_SPARE_FLEET else self._FLEET_1_STEP
-
-    @FLEET_1_STEP.setter
-    def FLEET_1_STEP(self, value):
-        self._FLEET_1_STEP = value
 
     """
     module.assets
@@ -98,7 +73,6 @@ class AzurLaneConfig:
     module.combat
     """
     ENABLE_SAVE_GET_ITEMS = True
-    ENABLE_MAP_FLEET_LOCK = True
     SUBMARINE_MODE = ''
     SUBMARINE_CALL_AT_BOSS = False
     COMBAT_SCREENSHOT_INTERVAL = 2
@@ -174,8 +148,6 @@ class AzurLaneConfig:
     FLEET_1_EMOTION_LIMIT = 120
     FLEET_2_RECOVER_PER_HOUR = 20
     FLEET_2_EMOTION_LIMIT = 50
-    FLEET_3_RECOVER_PER_HOUR = 20
-    FLEET_3_EMOTION_LIMIT = 50
 
     """
     module.device
@@ -435,8 +407,12 @@ class AzurLaneConfig:
 
     ENABLE_DATA_KEY_COLLECT = True
 
+    """
+    module.guild
+    """
     ENABLE_GUILD_LOGISTICS = False
     ENABLE_GUILD_OPERATIONS = False
+    GUILD_POPUP_TRIGGERED = False
     GUILD_INTERVAL = '40, 60' # str, such as '20', '10, 40'.
     GUILD_LOGISTICS_ITEM_ORDER_STRING = 't1 > t2 > t3 > oxycola > coolant > coins > oil > merit'
     GUILD_LOGISTICS_PLATE_T1_ORDER_STRING = 'torpedo > antiair > plane > gun > general'
@@ -597,9 +573,11 @@ class AzurLaneConfig:
         self.STOP_IF_MAP_REACH = option['if_map_reach']
         self.STOP_IF_GET_SHIP = to_bool(option['if_get_ship'])
         # Fleet
-        self.ENABLE_FLEET_CONTROL = to_bool(option['enable_fleet_control'])
         self.ENABLE_MAP_FLEET_LOCK = to_bool(option['enable_map_fleet_lock'])
-        for n in ['1', '2', '3']:
+        self.ENABLE_FLEET_REVERSE_IN_HARD = to_bool(option['enable_fleet_reverse_in_hard'])
+        self.ENABLE_AUTO_SEARCH = to_bool(option['enable_auto_search'])
+        self.AUTO_SEARCH_SETTING = option['auto_search_setting']
+        for n in ['1', '2']:
             self.__setattr__(f'FLEET_{n}', int(option[f'fleet_index_{n}']) if to_bool(option[f'fleet_index_{n}']) else 0)
             self.__setattr__(f'FLEET_{n}_FORMATION', int(option[f'fleet_formation_{n}'].split('_')[1]))
             self.__setattr__(f'FLEET_{n}_STEP', int(option[f'fleet_step_{n}']))
@@ -610,7 +588,7 @@ class AzurLaneConfig:
         # Emotion
         self.ENABLE_EMOTION_REDUCE = to_bool(option['enable_emotion_reduce'])
         self.IGNORE_LOW_EMOTION_WARN = to_bool(option['ignore_low_emotion_warn'])
-        for n in ['1', '2', '3']:
+        for n in ['1', '2']:
             recover = dic_emotion_recover[option[f'emotion_recover_{n}']]
             recover += 10 if to_bool(option[f'hole_fleet_married_{n}']) else 0
             self.__setattr__(f'FLEET_{n}_RECOVER_PER_HOUR', recover)
