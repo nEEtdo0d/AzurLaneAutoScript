@@ -20,6 +20,7 @@ class CampaignHard(CampaignRun):
         chapter, stage = self.config.HARD_CAMPAIGN.split('-')
         name = f'campaign_{chapter}_{stage}'
         self.reward_backup_daily_reward_settings()
+        fleet_lock = self.config.cover(ENABLE_MAP_FLEET_LOCK=True, ENABLE_AUTO_SEARCH=False)
 
         # Initial
         self.load_campaign(name='campaign_hard', folder='campaign_hard')  # Load campaign file
@@ -38,10 +39,14 @@ class CampaignHard(CampaignRun):
         logger.attr('Remain', remain)
         for n in range(remain):
             self.campaign.run()
+            if self.campaign.config.GUILD_POPUP_TRIGGERED:
+                self.config.GUILD_POPUP_TRIGGERED = True
+                self.campaign.config.GUILD_POPUP_TRIGGERED = False
 
         for backup in backups:
             backup.recover()
         self.campaign.equipment_take_off_when_finished()
+        fleet_lock.recover()
         self.reward_recover_daily_reward_settings()
 
     def record_executed_since(self):
