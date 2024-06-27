@@ -27,6 +27,8 @@ else:
     OCR_SHOP_GUILD_COINS = Digit(SHOP_GUILD_COINS, letter=(255, 255, 255), name='OCR_SHOP_GUILD_COINS')
     OCR_SHOP_CORE = Digit(SHOP_CORE, letter=(239, 239, 239), name='OCR_SHOP_CORE')
 OCR_SHOP_VOUCHER = Digit(SHOP_VOUCHER, letter=(255, 255, 255), name='OCR_SHOP_VOUCHER')
+OCR_SHOP_YELLOW_COINS = Digit(SHOP_YELLOW_COINS, letter=(239, 239, 239), threshold=160, name='OCR_SHOP_YELLOW_COINS')
+OCR_SHOP_PURPLE_COINS = Digit(SHOP_PURPLE_COINS, letter=(255, 255, 255), name='OCR_SHOP_PURPLE_COINS')
 
 class ShopStatus(UI):
     def status_get_gold_coins(self):
@@ -104,4 +106,26 @@ class ShopStatus(UI):
             in: OpSi voucher shop
         """
         amount = OCR_SHOP_VOUCHER.ocr(self.device.image)
+        return amount
+
+    def status_get_yellow_coins(self):
+        """
+        Returns:
+            int:
+
+        Pages:
+            in: OpSi voucher shop
+        """
+        amount = OCR_SHOP_YELLOW_COINS.ocr(self.device.image)
+        return amount
+
+    def status_get_purple_coins(self):
+        """
+        Returns:
+            int:
+
+        Pages:
+            in: OpSi voucher shop
+        """
+        amount = OCR_SHOP_PURPLE_COINS.ocr(self.device.image)
         return amount
