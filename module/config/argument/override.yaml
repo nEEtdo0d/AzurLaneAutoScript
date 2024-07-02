@@ -413,6 +413,11 @@ OpsiShop:
     SuccessInterval: 30
     FailureInterval: 30
     ServerUpdate: 00:00
+OpsiShopBeta:
+  Scheduler:
+    SuccessInterval: 30
+    FailureInterval: 30
+    ServerUpdate: 00:00
 OpsiVoucher:
   Scheduler:
     SuccessInterval: 30
