@@ -35,6 +35,13 @@ class OSCampaignRun(OSMapOperation):
         except ActionPointLimit:
             self.config.opsi_task_delay(ap_limit=True)
 
+    def opsi_shop_beta(self):
+        try:
+            self.load_campaign()
+            self.campaign.os_port_shop()
+        except ActionPointLimit:
+            self.config.opsi_task_delay(ap_limit=True)
+
     def opsi_voucher(self):
         try:
             self.load_campaign()
