@@ -19,7 +19,7 @@ class ManualConfig:
     > OpsiExplore
     > Minigame > Awaken
     > OpsiAshBeacon
-    > OpsiDaily > OpsiShop > OpsiVoucher
+    > OpsiDaily > OpsiShop > OpsiShopBeta > OpsiVoucher
     > OpsiAbyssal > OpsiStronghold > OpsiObscure > OpsiArchive
     > Daily > Hard > OpsiAshBeacon > OpsiAshAssist > OpsiMonthBoss
     > Sos > EventSp > EventA > EventB > EventC > EventD
