@@ -2,15 +2,23 @@ import re
 
 import cv2
 
+import module.config.server as server
 from module.base.timer import Timer
 from module.exception import ScriptError
 from module.logger import logger
 from module.ocr.ocr import Digit, DigitCounter
 from module.retire.retirement import Retirement
 from module.shop.assets import *
-from module.shop.base import ShopBase
 from module.shop.shop_select_globals import *
 from module.ui.assets import SHOP_BACK_ARROW
+
+# UI update in 20250814, but server TW is still old UI.
+if server.server != 'tw':
+    from module.ui_white.assets import BACK_ARROW_WHITE as BACK_ARROW
+    from module.shop_white.base import ShopBase
+else:
+    from module.ui.assets import BACK_ARROW
+    from module.shop.base import ShopBase
 
 
 class StockCounter(DigitCounter):
@@ -261,7 +269,7 @@ class ShopClerk(ShopBase, Retirement):
         if need to clear particular
         asset intervals
         """
-        self.interval_clear(SHOP_BACK_ARROW)
+        self.interval_clear(BACK_ARROW)
         self.interval_clear(SHOP_BUY_CONFIRM)
 
     def shop_buy_handle(self, item):
@@ -296,29 +304,29 @@ class ShopClerk(ShopBase, Retirement):
             else:
                 self.device.screenshot()
 
-            if self.appear(SHOP_BACK_ARROW, offset=(30, 30), interval=3):
+            if self.appear(BACK_ARROW, offset=(30, 30), interval=3):
                 self.device.click(item)
                 continue
             if self.appear_then_click(SHOP_BUY_CONFIRM, offset=(20, 20), interval=3):
-                self.interval_reset(SHOP_BACK_ARROW)
+                self.interval_reset(BACK_ARROW)
                 continue
             if self.shop_buy_handle(item):
-                self.interval_reset(SHOP_BACK_ARROW)
+                self.interval_reset(BACK_ARROW)
                 continue
             if self.handle_retirement():
-                self.interval_reset(SHOP_BACK_ARROW)
+                self.interval_reset(BACK_ARROW)
                 continue
             if self.shop_obstruct_handle():
-                self.interval_reset(SHOP_BACK_ARROW)
+                self.interval_reset(BACK_ARROW)
                 success = True
                 continue
             if self.info_bar_count():
-                self.interval_reset(SHOP_BACK_ARROW)
+                self.interval_reset(BACK_ARROW)
                 success = True
                 continue
 
             # End
-            if success and self.appear(SHOP_BACK_ARROW, offset=(30, 30)):
+            if success and self.appear(BACK_ARROW, offset=(30, 30)):
                 break
 
     def shop_buy(self):

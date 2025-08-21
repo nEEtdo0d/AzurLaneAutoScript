@@ -11,10 +11,10 @@ class RewardShop(ShopUI):
         # Munitions shops
         self.ui_goto_shop()
         if self.config.SERVER in ['tw']:
-            self.device.click_record_clear()
-            self.shop_tab.set(main=self, left=2)
-            self.shop_nav.set(main=self, upper=1)
-            GeneralShop(self.config, self.device).run()
+        self.device.click_record_clear()
+        self.shop_tab.set(main=self, left=2)
+        self.shop_nav.set(main=self, upper=1)
+        GeneralShop(self.config, self.device).run()
         elif self.config.SERVER in ['cn']:
             self.device.click_record_clear()
             self.shop_tab_250814.set(main=self, upper=1)
@@ -30,18 +30,18 @@ class RewardShop(ShopUI):
             self.shop_tab.set(main=self, left=2)
             self.shop_nav.set(main=self, upper=2)
             MeritShop(self.config, self.device).run()
-
+    
             self.device.click_record_clear()
             self.shop_tab.set(main=self, left=2)
             self.shop_nav.set(main=self, upper=3)
             GuildShop(self.config, self.device).run()
-
+    
             # core limited, core monthly, medal, prototype
             self.device.click_record_clear()
             self.shop_tab.set(main=self, left=1)
             self.shop_nav.set(main=self, upper=2)
             CoreShop(self.config, self.device).run()
-
+    
             self.device.click_record_clear()
             self.shop_tab.set(main=self, left=1)
             self.shop_nav.set(main=self, upper=3)

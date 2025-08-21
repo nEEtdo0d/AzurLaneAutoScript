@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import inflection
 from cached_property import cached_property
 
+import module.config.server as server
 from module.base.decorator import del_cached_property
 from module.config.config import AzurLaneConfig, TaskEnd
 from module.config.deep import deep_get, deep_set
@@ -214,11 +215,17 @@ class AzurLaneAutoScript:
         Awaken(config=self.config, device=self.device).run()
 
     def shop_frequent(self):
-        from module.shop.shop_reward import RewardShop
+        if server.server != 'tw':
+            from module.shop_white.shop_reward import RewardShop
+        else:
+            from module.shop.shop_reward import RewardShop
         RewardShop(config=self.config, device=self.device).run_frequent()
 
     def shop_once(self):
-        from module.shop.shop_reward import RewardShop
+        if server.server != 'tw':
+            from module.shop_white.shop_reward import RewardShop
+        else:
+            from module.shop.shop_reward import RewardShop
         RewardShop(config=self.config, device=self.device).run_once()
 
     def shipyard(self):

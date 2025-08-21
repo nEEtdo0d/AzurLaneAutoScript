@@ -1,3 +1,4 @@
+import module.config.server as server
 from module.base.button import ButtonGrid
 from module.base.decorator import Config, cached_property
 from module.base.timer import Timer
@@ -9,6 +10,11 @@ from module.ui.navbar import Navbar
 from module.ui.page import page_academy, page_munitions
 from module.ui.ui import UI
 
+# UI update in 20250814, but server TW is still old UI.
+if server.server != 'tw':
+    from module.ui_white.assets import BACK_ARROW_WHITE as BACK_ARROW
+else:
+    from module.ui.assets import BACK_ARROW
 
 class ShopUI(UI):
     @cached_property
@@ -184,7 +190,7 @@ class ShopUI(UI):
                 continue
             if self.appear(SHOP_BUY_CONFIRM_MISTAKE, interval=3, offset=(200, 200)) \
                     and self.appear(POPUP_CONFIRM, offset=(3, 30)):
-                self.ui_click(SHOP_CLICK_SAFE_AREA, appear_button=POPUP_CONFIRM, check_button=SHOP_BACK_ARROW,
+                self.ui_click(SHOP_CLICK_SAFE_AREA, appear_button=POPUP_CONFIRM, check_button=BACK_ARROW,
                               offset=(20, 30), skip_first_screenshot=True)
                 exit_timer.reset()
                 refreshed = False
@@ -195,7 +201,7 @@ class ShopUI(UI):
                 continue
 
             # End
-            if self.appear(SHOP_BACK_ARROW, offset=(30, 30)):
+            if self.appear(BACK_ARROW, offset=(30, 30)):
                 if exit_timer.reached():
                     break
             else:

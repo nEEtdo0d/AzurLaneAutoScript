@@ -12,6 +12,33 @@ from module.ui.page import page_shop, page_supply_pack
 
 
 class SupplyPack(CampaignStatus):
+    def get_oil(self, skip_first_screenshot=True):
+        """
+        Returns:
+            int: Oil amount
+        """
+        amount = 0
+        timeout = Timer(1, count=2).start()
+        while 1:
+            if skip_first_screenshot:
+                skip_first_screenshot = False
+            else:
+                self.device.screenshot()
+
+            if timeout.reached():
+                logger.warning('Get oil timeout')
+                break
+
+            if not self.appear(OCR_OIL_CHECK, offset=(10, 2)):
+                logger.info('No oil icon')
+                continue
+            ocr = Digit(OCR_OIL, name='OCR_OIL', letter=(247, 247, 247), threshold=128)
+            amount = ocr.ocr(self.device.image)
+            if amount >= 100:
+                break
+
+        return amount
+
     def supply_pack_buy(self, supply_pack, skip_first_screenshot=True):
         """
         Args:
@@ -72,7 +99,7 @@ class SupplyPack(CampaignStatus):
             in: page_shop
             out: page_supply_pack, supply pack tab
         """
-        self.ui_goto(page_supply_pack, skip_first_screenshot=skip_first_screenshot)
+        self.ui_goto(page_supply_pack, get_ship=False, skip_first_screenshot=skip_first_screenshot)
 
     def run(self):
         """
@@ -80,8 +107,8 @@ class SupplyPack(CampaignStatus):
             in: Any page
             out: page_supply_pack, supply pack tab
         """
-        self.ui_ensure(page_shop)
         self.goto_supply_pack()
+
         if self.get_oil() < 21000:
             server_today = get_server_weekday()
             target = self.config.SupplyPack_DayOfWeek
@@ -137,3 +164,25 @@ class SupplyPack_250814(SupplyPack):
 
             elif self.appear_then_click(page_supply_pack.check_button, offset=(20, 20), interval=3):
                 continue
+
+    def run(self):
+        """
+        Pages:
+            in: Any page
+            out: page_supply_pack, supply pack tab
+        """
+        # TODO: Recapture compatiable asset so EN server can use this implementation
+        #       Don't forget to update freebies.py
+        self.ui_ensure(page_shop)
+        self.goto_supply_pack()
+
+        if self.get_oil() < 21000:
+            server_today = get_server_weekday()
+            target = self.config.SupplyPack_DayOfWeek
+            target_name = day_name[target]
+            if server_today >= target:
+                self.supply_pack_buy(FREE_SUPPLY_PACK)
+            else:
+                logger.info(f'Delaying free week supply pack to {target_name}')
+        else:
+            logger.info('Oil > 21000, unable to buy free weekly supply pack')

@@ -24,7 +24,7 @@ class Freebies(ModuleBase):
 
         if self.config.SupplyPack_Collect:
             logger.hr('Supply pack', level=1)
-            if self.config.SERVER in ['tw']:
+            if self.config.SERVER in ['tw', 'en']:
                 SupplyPack(self.config, self.device).run()
             else:
                 SupplyPack_250814(self.config, self.device).run()
