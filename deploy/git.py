@@ -65,6 +65,7 @@ class GitManager(DeployConfig):
                 os.remove(lock_file)
         if keep_changes:
             if self.execute(f'"{self.git}" stash', allow_failure=True):
+                self.execute(f'"{self.git}" reset --hard {source}/{branch}')
                 self.execute(f'"{self.git}" pull --ff-only {source} {branch}')
                 if self.execute(f'"{self.git}" stash pop', allow_failure=True):
                     pass
