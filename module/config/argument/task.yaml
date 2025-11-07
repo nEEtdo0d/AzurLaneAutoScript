@@ -288,6 +288,9 @@ Opsi:
     OpsiShop:
       - Scheduler
       - OpsiShop
+    OpsiShopBeta:
+      - Scheduler
+      - OpsiShopBeta
     OpsiVoucher:
       - Scheduler
       - OpsiVoucher

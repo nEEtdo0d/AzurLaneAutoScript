@@ -3,6 +3,7 @@ from module.logger import logger
 from module.os_handler.assets import PORT_DOCK_CHECK, PORT_ENTER, PORT_GOTO_DOCK, PORT_GOTO_MISSION, PORT_GOTO_SUPPLY, PORT_MISSION_ACCEPT, PORT_MISSION_CHECK, PORT_MISSION_RED_DOT
 from module.os_shop.assets import PORT_SUPPLY_CHECK
 from module.os_shop.shop import OSShop
+from module.shop.shop_port import PortShop
 
 # Azur Lane ports have PORT_GOTO_MISSION, PORT_GOTO_SUPPLY, PORT_GOTO_DOCK.
 # Red axis ports have PORT_GOTO_SUPPLY.
@@ -98,6 +99,29 @@ class PortHandler(OSShop):
             out: PORT_CHECK
         """
         self.ui_back(appear_button=PORT_SUPPLY_CHECK, check_button=PORT_CHECK, skip_first_screenshot=True)
+
+    def port_supply_buy_beta(self):
+        """
+        Buy supply in port.
+
+        Returns:
+            bool: True if success to buy any or no items found.
+                False if not enough coins to buy any.
+
+        Pages:
+            in: PORT_CHECK
+            out: PORT_CHECK
+        """
+        self.ui_click(PORT_GOTO_SUPPLY, appear_button=PORT_CHECK, check_button=PORT_SUPPLY_CHECK,
+                      skip_first_screenshot=True)
+        # Port items has an animation to show
+        self.device.sleep(0.5)
+        self.device.screenshot()
+
+        success = PortShop(self.config, self.device).run()
+
+        self.ui_back(appear_button=PORT_SUPPLY_CHECK, check_button=PORT_CHECK, skip_first_screenshot=True)
+        return success
 
     def port_dock_repair(self):
         """

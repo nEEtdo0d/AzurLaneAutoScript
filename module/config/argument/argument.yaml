@@ -705,6 +705,28 @@ OpsiShop:
     > GearDesignPlanT3 > PlateRandomT4 > DevelopmentMaterialT3 > GearDesignPlanT2 > GearPart
     > OrdnanceTestingReportT3 > OrdnanceTestingReportT2 > DevelopmentMaterialT2 > OrdnanceTestingReportT1
     > METARedBook > CrystallizedHeatResistantSteel > NanoceramicAlloy > NeuroplasticProstheticArm > SupercavitationGenerator
+OpsiShopBeta:
+  BuyFrequency:
+    value: weekly
+    option:
+      - everyday
+      - weekly
+      - week_before_reset
+  PresetFilter:
+    value: max_benefit
+    option:
+      - max_benefit
+      - max_benefit_meta
+      - max_benefit_exploration
+      - all
+      - custom
+  CustomFilter: |-
+    Logger
+    > PurpleCoins > Tuning > ActionPoint
+    > BoxMatT3
+    > PlatePartT4 > GearPlanT4 > GearReportT4
+    > PlatePartT3 > PlateWildT3 > GearPlanT3 > GearReportT3
+    > Book > Rigging
 OpsiVoucher:
   Filter: |-
     LoggerAbyssal > LoggerObscure > Book > Coin > Fragment

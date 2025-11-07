@@ -214,6 +214,10 @@
       "name": "OpSi Shop",
       "help": ""
     },
+    "OpsiShopBeta": {
+      "name": "OpSi Shop Beta",
+      "help": ""
+    },
     "OpsiVoucher": {
       "name": "OpSi Voucher",
       "help": ""
@@ -2427,6 +2431,32 @@
     "CustomFilter": {
       "name": "OpsiShop.CustomFilter.name",
       "help": "OpsiShop.CustomFilter.help"
+    }
+  },
+  "OpsiShopBeta": {
+    "_info": {
+      "name": "OpsiShopBeta._info.name",
+      "help": "OpsiShopBeta._info.help"
+    },
+    "BuyFrequency": {
+      "name": "OpsiShopBeta.BuyFrequency.name",
+      "help": "OpsiShopBeta.BuyFrequency.help",
+      "everyday": "everyday",
+      "weekly": "weekly",
+      "week_before_reset": "week_before_reset"
+    },
+    "PresetFilter": {
+      "name": "OpsiShopBeta.PresetFilter.name",
+      "help": "OpsiShopBeta.PresetFilter.help",
+      "max_benefit": "max_benefit",
+      "max_benefit_meta": "max_benefit_meta",
+      "max_benefit_exploration": "max_benefit_exploration",
+      "all": "all",
+      "custom": "custom"
+    },
+    "CustomFilter": {
+      "name": "OpsiShopBeta.CustomFilter.name",
+      "help": "OpsiShopBeta.CustomFilter.help"
     }
   },
   "OpsiVoucher": {

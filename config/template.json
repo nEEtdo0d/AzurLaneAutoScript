@@ -1719,6 +1719,24 @@
       "Storage": {}
     }
   },
+  "OpsiShopBeta": {
+    "Scheduler": {
+      "Enable": false,
+      "NextRun": "2020-01-01 00:00:00",
+      "Command": "OpsiShopBeta",
+      "SuccessInterval": 30,
+      "FailureInterval": 30,
+      "ServerUpdate": "00:00"
+    },
+    "OpsiShopBeta": {
+      "BuyFrequency": "weekly",
+      "PresetFilter": "max_benefit",
+      "CustomFilter": "Logger\n> PurpleCoins > Tuning > ActionPoint\n> BoxMatT3\n> PlatePartT4 > GearPlanT4 > GearReportT4\n> PlatePartT3 > PlateWildT3 > GearPlanT3 > GearReportT3\n> Book > Rigging"
+    },
+    "Storage": {
+      "Storage": {}
+    }
+  },
   "OpsiVoucher": {
     "Scheduler": {
       "Enable": false,

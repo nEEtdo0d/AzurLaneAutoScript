@@ -214,6 +214,10 @@
       "name": "大世界商店",
       "help": ""
     },
+    "OpsiShopBeta": {
+      "name": "OpSi Shop Beta",
+      "help": ""
+    },
     "OpsiVoucher": {
       "name": "兌換商店",
       "help": ""
@@ -2427,6 +2431,32 @@
     "CustomFilter": {
       "name": "自定義過濾器",
       "help": "使用自定義過濾器需將 \"港口商店過濾器\" 設定為 \"自定義\"，並閱讀 https://github.com/LmeSzinc/AzurLaneAutoScript/wiki/filter_string_cn"
+    }
+  },
+  "OpsiShopBeta": {
+    "_info": {
+      "name": "OpsiShopBeta._info.name",
+      "help": "OpsiShopBeta._info.help"
+    },
+    "BuyFrequency": {
+      "name": "OpsiShopBeta.BuyFrequency.name",
+      "help": "OpsiShopBeta.BuyFrequency.help",
+      "everyday": "everyday",
+      "weekly": "weekly",
+      "week_before_reset": "week_before_reset"
+    },
+    "PresetFilter": {
+      "name": "OpsiShopBeta.PresetFilter.name",
+      "help": "OpsiShopBeta.PresetFilter.help",
+      "max_benefit": "max_benefit",
+      "max_benefit_meta": "max_benefit_meta",
+      "max_benefit_exploration": "max_benefit_exploration",
+      "all": "all",
+      "custom": "custom"
+    },
+    "CustomFilter": {
+      "name": "OpsiShopBeta.CustomFilter.name",
+      "help": "OpsiShopBeta.CustomFilter.help"
     }
   },
   "OpsiVoucher": {

@@ -407,6 +407,11 @@ class GeneratedConfig:
     OpsiShop_PresetFilter = 'max_benefit_meta'  # max_benefit, max_benefit_meta, no_meta, all, custom
     OpsiShop_CustomFilter = 'LoggerAbyssalT6 > LoggerAbyssalT5 > LoggerObscure > LoggerAbyssalT4 > ActionPoint > PurpleCoins\n> GearDesignPlanT3 > PlateRandomT4 > DevelopmentMaterialT3 > GearDesignPlanT2 > GearPart\n> OrdnanceTestingReportT3 > OrdnanceTestingReportT2 > DevelopmentMaterialT2 > OrdnanceTestingReportT1\n> METARedBook > CrystallizedHeatResistantSteel > NanoceramicAlloy > NeuroplasticProstheticArm > SupercavitationGenerator'
 
+    # Group `OpsiShopBeta`
+    OpsiShopBeta_BuyFrequency = 'weekly'  # everyday, weekly, week_before_reset
+    OpsiShopBeta_PresetFilter = 'max_benefit'  # max_benefit, max_benefit_meta, max_benefit_exploration, all, custom
+    OpsiShopBeta_CustomFilter = 'Logger\n> PurpleCoins > Tuning > ActionPoint\n> BoxMatT3\n> PlatePartT4 > GearPlanT4 > GearReportT4\n> PlatePartT3 > PlateWildT3 > GearPlanT3 > GearReportT3\n> Book > Rigging'
+
     # Group `OpsiVoucher`
     OpsiVoucher_Filter = 'LoggerAbyssal > LoggerObscure > Book > Coin > Fragment'
 
